@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A.R.C. Vault Terminal v3.3 (Stable Build)</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* --- CRT EFFECTS & THEME --- */
+        :root {
+            --color-primary: #4ade80; /* Green 400 */
+            --color-secondary: #064e3b; /* Green 900 */
+            --color-bg-dark: #050505;
+        }
+
+        body {
+            background-color: #000;
+            color: var(--color-primary);
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden; /* Main body shouldn't scroll, inner containers should */
+            cursor: default;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* --- KEYFRAMES --- */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .animate-blink { animation: blink 1s step-end infinite; }
+
+        @keyframes pulse-slow { 
+            0%, 100% { opacity: 0.8; } 
+            50% { opacity: 0.4; } 
+        }
+        .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
+
+        @keyframes fade-in { 
+            from { opacity: 0; } 
+            to { opacity: 1; } 
+        }
+        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+
+        /* --- CUSTOM CLASSES --- */
+        .text-shadow-glow { 
+            text-shadow: 0 0 2px rgba(74, 222, 128, 0.4), 0 0 5px rgba(74, 222, 128, 0.1); 
+        }
+        
+        .font-handwriting { 
+            font-family: 'Courier New', Courier, monospace; 
+            letter-spacing: -0.5px; 
+            font-style: italic;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #15803d #0a1a0a;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0a1a0a; border-left: 1px solid #14532d; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #15803d; border: 1px solid #000; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #22c55e; }
+
+        /* CRT Overlay Layers */
+        .scanlines {
+            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%), linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+        
+        .crt-overlay {
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Root Container -->
+    <div id="root" class="fixed inset-0 bg-black overflow-hidden selection:bg-green-500 selection:text-black touch-manipulation"></div>
+
+<script>
+    // --- LORE & DATA ---
+    const CURRENT_DATE = "23.10.2275";
+
+    const EMAILS = [
+        {
+            id: 'msg_001',
+            from: 'Caldwell, V. (Overseer)',
+            to: 'Drake, R. (Security Chief)',
+            subject: 'Simulation 55-C ("Rogue Army" Scenario)',
+            date: '23.10.2275',
+            body: 'Roland,\n\nI reviewed the logs from the "Rogue US Army" simulation.\n\nIt is terrifying. We programmed the holographic enemies to use Pre-War T-51b tactics. The result? Our 10mm rounds bounced off their plating. Our T-45d suits—our heaviest assets—were outmaneuvered by the theoretical T-51b algorithms in 12 minutes.\n\nWe have to assume that if we open that door, we might face technology equal to or greater than our own.\n\nKeep this quiet.\n\n- V.C.'
+        },
+        {
+            id: 'msg_002',
+            from: 'Volkova, N. (Chief Eng)',
+            to: 'Maintenance Division',
+            subject: 'Mr. Handy Unit 38 ("Barnaby") Decommission',
+            date: '22.10.2275',
+            body: 'It is with regret that I am pulling Unit 38 ("Barnaby") from the cafeteria rotation.\n\nAfter 198 years of continuous operation without a factory reset, his personality matrix has fragmented. Yesterday he attempted to serve "Radiation Soup" by trying to ladle water directly from the reactor coolant line.\n\nWe cannot wipe him; we lost the RobCo factory software in the 50s. We can only salvage him for parts.\n\n- Natasha'
+        },
+        {
+            id: 'msg_003',
+            from: 'Dr. Morrison (Chief Medical)',
+            to: 'Caldwell, V. (Overseer)',
+            subject: 'Case Study: The "Grey Drift"',
+            date: '20.10.2275',
+            body: 'Vincent,\n\nThe "Grey Drift" isn\'t just a slang term anymore. I have a clinical case.\n\nSubject: Child 44-A (Born 2270).\nSymptoms: Extreme lethargy, photosensitivity, and a depressed immune response.\n\nIt\'s the genetic bottleneck. We are 198 years deep in a closed loop. The DNA is unraveling.\n\nIf we do not introduce external genetic material within one generation, we risk a cascade failure.\n\n- James'
+        },
+        {
+            id: 'msg_004',
+            from: 'Torres, M. (Reclamationist)',
+            to: 'Council All',
+            subject: 'The Unknown Signal',
+            date: '18.10.2275',
+            body: 'I was in the comms room during the seismic event yesterday. I heard it.\n\nThrough the static, for three seconds: Music. American marching music. And a voice. It sounded like... a President?\n\nAshford claims it\'s a "Ghost Signal"—a pre-war automated loop. But it sounded crisp. It sounded NEW.\n\nSomeone is rebuilding America up there.\n\n- Michaela'
+        }
+    ];
+
+    const FILE_SYSTEM = {
+        root: { id: 'root', name: 'MAIN DRIVE', type: 'folder', children: ['mission', 'military', 'admin', 'engineering', 'medical', 'classified'] },
+        
+        // Mission
+        mission: { id: 'mission', name: 'MISSION PROFILE', type: 'folder', children: ['project_ark', 'langston_memo', 'timeline_events'] },
+        project_ark: { id: 'project_ark', name: 'PROJECT_OVERVIEW.TXT', type: 'file', content: 'SUBJECT: The A.R.C. (Vault 254)\nCLASSIFICATION: V-TEC EYES ONLY\n\nThe Administrative Reclamation Command is a CONTROL VAULT designed to preserve the corporate hierarchy of Vault-Tec.\n\nCORE MANDATE:\n1. SURVIVE the nuclear exchange.\n2. WAIT for the "Great Silence" (estimated 20 years post-war).\n3. AWAKEN the 120 Executives.\n4. RESTRUCTURE the United States under corporate governance.\n\nCURRENT STATUS: CRITICAL FAILURE OF STEP 2.\nThe surface is not silent; it is screaming.' },
+        langston_memo: { id: 'langston_memo', name: 'LANGSTON_MEMO.LOG', type: 'file', content: 'FROM: Frederick Langston, Board of Directors\nDATE: August 14, 2076\n\n"We are the architects of the future."\n\nLet the politicians in Washington burn. When the smoke clears, the world will need Management. It will need Structure. It will need Us.\n\nWe will sleep through the chaos. And when we wake, we will not be rebuilding a democracy. We will be building a Department.' },
+        timeline_events: { id: 'timeline_events', name: 'HISTORY_LOG.DAT', type: 'file', content: '[2077.10.23] The Great Seal. 120 Executives frozen. 369 Staff active.\n[2102.05.20] Overseer Caldwell I cancels opening. "Atmosphere toxic."\n[2180.11.02] The "Deep Tremor." A massive seismic event shakes the vault.\n[2245.03.15] The "Static Age" begins. Comms pick up increased encrypted chatter.\n[2275.10.23] PRESENT DAY. 198 Years of Silence.' },
+
+        // Military
+        military: { id: 'military', name: 'SECURITY & DEFENSE', type: 'folder', children: ['force_manifest', 'arsenal_count', 'death_spiral', 'simulation_logs', 'surface_threats'] },
+        force_manifest: { id: 'force_manifest', name: 'ROSTER_ACTIVE.DB', type: 'file', content: 'COMMANDER: Chief Roland Drake\nACTIVE FORCE: 120 Personnel\n\nPLATOON ALPHA ("The Wall")\n- Duty: The Great Door\n- Mental State: High paranoia.\n\nPLATOON BETA ("The Watch")\n- Duty: Internal Order\n\nPLATOON GAMMA ("The Reserve")\n- Duty: Maintenance & Training' },
+        arsenal_count: { id: 'arsenal_count', name: 'ARMORY_INVENTORY.TXT', type: 'file', content: 'WARNING: NON-REPLENISHABLE STOCKPILE\n\nSMALL ARMS:\n- 10mm Pistols (N99): 150 Units\n- R91 Assault Rifles: 200 Units (Wood stocks rotting)\n\nHEAVY EQUIPMENT:\n- T-45d Power Armor: 20 Suits (18 Operational)\n\nMISSING CAPABILITIES:\n- NO indirect fire support.\n- NO air support.\n- NO anti-armor weaponry.' },
+        death_spiral: { id: 'death_spiral', name: 'THREAT_DEATH_SPIRAL.DOC', type: 'file', content: 'STRATEGIC ASSESSMENT: "THE DEATH SPIRAL"\n\nTHE MATH:\nWe cannot build guns. We cannot build bullets. We cannot build armor.\n\nIf we win a battle but lose 10 Rifles, we have permanently lost 5% of our combat power.\n\nCONCLUSION:\nVictory is mathematically impossible in a sustained conflict. Our only defense is obscurity.' },
+        simulation_logs: { id: 'simulation_logs', name: 'WAR_GAME_RESULTS.LOG', type: 'file', content: 'SCENARIO: "Communist Invasion Force"\nRESULT: DEFEAT. (Stealth suits overwhelmed T-45s).\n\nSCENARIO: "Civilian Riot"\nRESULT: VICTORY.\n\nSCENARIO: "Rogue US Army Remnant"\nRESULT: TOTAL DEFEAT in 14 minutes.\nNOTE: Our ballistic vests offered zero resistance to Plasma weaponry.' },
+        surface_threats: { id: 'surface_threats', name: 'SURFACE_SENSOR_LOGS.DAT', type: 'file', content: '[2275.05.12] SEISMIC: Heavy rhythmic vibrations detected. Mass > 2,000kg.\n\n[2275.08.14] ACOUSTIC: High-pitch turbine whine. Supersonic flight detected.\n\n[2275.10.01] RADIATION: Spike in background Rads. Wind from D.C. Ruins.' },
+
+        // Admin
+        admin: { id: 'admin', name: 'ADMINISTRATION', type: 'folder', children: ['factions', 'council_minutes', 'census', 'goat_results', 'contraband_list'] },
+        factions: { id: 'factions', name: 'POLITICAL_LANDSCAPE.DOC', type: 'file', content: 'INTERNAL FACTION SUMMARY (2275)\n\n1. LOYALISTS (Overseer Caldwell)\nStatus Quo. The vault is a Holy Sanctuary.\n\n2. RECLAMATIONISTS (Torres)\nBelieve the surface is safe and we are being held prisoner.\n\n3. PRESERVATIONISTS (Ashford)\nCult of safety. Refuse to look at photos of the "Hellscape."\n\n4. INNOVATORS (Volkova)\nEngineers tearing apart walls for parts.' },
+        council_minutes: { id: 'council_minutes', name: 'COUNCIL_TRANSCRIPTS_OCT.TXT', type: 'file', content: '[2275.10.15]\n\nTORRES (Reclamation): "We are eating algae paste while a world exists above us! The sensors are clear!"\n\nASHFORD (Preservation): "The sensors are lying! Or they are broken! Do you want to open the door and let the radiation cook our children?"\n\nCALDWELL (Overseer): "Enough. Until we have visual confirmation, the door stays shut."\n\nTORRES: "Then let me send a drone!"\n\nCALDWELL: "We don\'t have any drones left, Michaela. You used the last one for target practice."' },
+        census: { id: 'census', name: 'POPULATION_STATS.DAT', type: 'file', content: 'TOTAL POPULATION: 1,000\n- Active: 880\n- Cryo: 120\n\nGENETIC DIVERSITY: CRITICAL\nWe are essentially cloning clones of clones.' },
+        goat_results: { id: 'goat_results', name: 'GOAT_ASSIGNMENTS.TXT', type: 'file', content: 'CLASS OF 2275:\n\n- Johnson, T. > Waste Recycler.\n- Miller, S. > Security.\n- Vance, A. > Archives (Obsessed with pre-war maps).' },
+        contraband_list: { id: 'contraband_list', name: 'CONFISCATED_ITEMS.LOG', type: 'file', content: '1. "Grognak the Barbarian" Comic (Issue #4)\nReason: Depicts surface violence as "heroic."\n\n2. Home-made Radio Receiver\nReason: Unauthorized frequency scanning.\n\n3. "The Sky Book"\nReason: Child\'s drawing of the sun. Deemed destabilizing.' },
+
+        // Engineering
+        engineering: { id: 'engineering', name: 'ENGINEERING DEPT', type: 'folder', children: ['reactor_status', 'water_chip', 'maintenance_schedule'] },
+        reactor_status: { id: 'reactor_status', name: 'REACTOR_DIAGNOSTICS.LOG', type: 'file', content: 'SYSTEM: General Atomics V-Series\nSTATUS: ONLINE (DEGRADED)\n\nTHE VIBRATION:\nThe primary turbine has a wobble. We call it "The Heartbeat." If we shut it down, the Executives die.' },
+        water_chip: { id: 'water_chip', name: 'WATER_PURIFICATION.SYS', type: 'file', content: 'COMPONENT: Water Chip (Model 2077-B)\nSTATUS: FUNCTIONAL\n\nWe are using the last spare. If this chip breaks, we have to open the door.' },
+        maintenance_schedule: { id: 'maintenance_schedule', name: 'MAINTENANCE_ROTA.XLS', type: 'file', content: 'ROTA:\n\n- Level 1 (Admin): Daily\n- Level 4 (Reactor): Hourly\n- Level 5 (Geo-Thermal): WEEKLY ONLY (Too hot for extended shifts)' },
+
+        // Medical
+        medical: { id: 'medical', name: 'MEDICAL DATABASE', type: 'folder', children: ['psych_profiles', 'patient_zero', 'supply_manifest'] },
+        psych_profiles: { id: 'psych_profiles', name: 'PSYCH_PROFILES_VAULT_FEVER.DB', type: 'file', content: 'DATABASE: PSYCHOLOGICAL TRACKING\nCONDITION: "VAULT FEVER" (Acute Claustrophobia)\n\nSTATS:\n- Mild Symptoms: 34% of Pop.\n- Acute Symptoms: 12% of Pop.\n\nNOTEABLE CASES:\n\nCASE 102 (Officer Miller): Found clawing at the blast door paint. Sedated.\n\nCASE 89 (Engineer Wu): Claims the humming of the reactor is a "voice." Recommended for audio isolation.' },
+        patient_zero: { id: 'patient_zero', name: 'CASE_STUDY_GREY_DRIFT.DOC', type: 'file', content: 'SEE EMAIL MSG_003 FOR SUMMARY.' },
+        supply_manifest: { id: 'supply_manifest', name: 'MED_SUPPLY.LOG', type: 'file', content: 'STIMPAKS: 45 (CRITICAL)\nRAD-X: 200\nRADAWAY: 50\nMENTATS: 0 (Banned by Overseer)\n\nNOTE: We are synthesizing Stimpaks from fungal extract. Efficacy is 60% of pre-war standard.' },
+
+        // Classified
+        classified: { id: 'classified', name: 'RESTRICTED AREA', type: 'folder', locked: true, children: ['executive_manifest', 'wakeup_protocol', 'overseer_journal'] },
+        executive_manifest: { id: 'executive_manifest', name: 'EXECUTIVE_BOARD_LIST.ENC', type: 'file', content: '**** EYES ONLY ***\n\nCRYO-POD 001: Frederick Langston (Board Member)\nCRYO-POD 002: Leonard Vance (CEO)\nCRYO-POD 120: S. Calvin\n\nNOTE: Pod 089 is showing fluctuating power levels. The occupant may be suffering from "Freezer Burn" (Neural decay).' },
+        wakeup_protocol: { id: 'wakeup_protocol', name: 'RECLAMATION_DAY.EXE', type: 'file', content: 'PROTOCOL 77-RECLAIM\n\nStep 1: Unseal Blast Doors.\nStep 2: Establish perimeter.\nStep 3: Initiate Thaw Cycle (12 Hours).\n\nWARNING: We have never tested the thawing process. Pre-war estimates suggested a 15% lethality rate.' },
+        overseer_journal: { id: 'overseer_journal', name: 'OVERSEER_PRIVATE.LOG', type: 'file', content: 'They look to me for hope. I have none.\n\nThe sensors show radiation spikes. The radio picks up signals I can\'t decode. The reactor is shaking the floorboards.\n\nMy grandfather told me the surface was a graveyard. But the sensors say it\'s alive. And if it\'s alive, it\'s had 200 years to get strong.' }
+    };
+
+    // --- GLOBAL STATE ---
+    window.state = {
+        booted: false,
+        bootLog: [],
+        activeApp: null, 
+        showNote: false,
+        // Terminal App State
+        terminal: {
+            path: ['root'],
+            viewingFile: null,
+            unlocked: [],
+            unlockTarget: null,
+            unlockInput: '',
+        },
+        // Mail App State
+        mail: {
+            selectedEmailId: null,
+        },
+        // Map App State
+        map: {
+            selectedRoom: null, 
+        }
+    };
+
+    // --- STATE MANAGEMENT & RENDERING ---
+    // The previous version re-rendered EVERYTHING on every state change.
+    // This fixed version allows partial updates for the clock and only full renders for navigation.
+    
+    window.setState = (newState) => {
+        let shouldRender = false;
+
+        Object.keys(newState).forEach(key => {
+            // Check if value actually changed to avoid unnecessary renders
+            if (JSON.stringify(window.state[key]) !== JSON.stringify(newState[key])) {
+                if (typeof newState[key] === 'object' && newState[key] !== null && !Array.isArray(newState[key]) && window.state[key]) {
+                    window.state[key] = { ...window.state[key], ...newState[key] };
+                } else {
+                    window.state[key] = newState[key];
+                }
+                shouldRender = true;
+            }
+        });
+        
+        if (shouldRender) {
+            renderApp();
+        }
+    };
+
+    // --- CLOCK (Optimized: No full Re-render) ---
+    setInterval(() => {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const clockEl = document.getElementById('system-clock');
+        if (clockEl) {
+            clockEl.innerText = timeString;
+        }
+    }, 1000);
+
+    // --- RENDERING SYSTEM ---
+    const root = document.getElementById('root');
+
+    function renderApp() {
+        // If the shell doesn't exist, build it.
+        if (!document.getElementById('shell-container')) {
+            root.innerHTML = `
+                ${renderCRTOverlay()}
+                <div id="shell-container" class="h-full w-full p-2 md:p-8 transition-opacity duration-1000 opacity-0">
+                    <div class="h-full w-full border-[2px] md:border-[16px] border-[#1a1a1a] rounded-lg md:rounded-3xl bg-[#0a0a0a] relative shadow-[0_0_0_2px_#333,0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col box-border">
+                        <!-- Screen Glass Reflection -->
+                        <div class="hidden md:block absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-bl from-white/5 to-transparent rounded-tr-xl pointer-events-none z-40"></div>
+                        
+                        <!-- Main Content Area -->
+                        <div id="screen-content" class="flex-1 overflow-hidden bg-black text-shadow-glow relative z-10 font-mono text-green-500"></div>
+                    </div>
+                </div>
+                <div id="modal-layer"></div>
+            `;
+            // Trigger fade in
+            setTimeout(() => {
+                const el = document.getElementById('shell-container');
+                if(el) el.classList.remove('opacity-0');
+            }, 100);
+        }
+
+        const screenContent = document.getElementById('screen-content');
+        const modalLayer = document.getElementById('modal-layer');
+        const { booted, activeApp } = window.state;
+
+        // Render Active App (Modal)
+        modalLayer.innerHTML = activeApp ? renderModalWindow() : '';
+
+        // Render Desktop or Boot
+        // We check if the content has changed to avoid resetting scroll on re-renders if possible,
+        // but for app switching we need to replace content.
+        if (booted) {
+             // Only update desktop if we are not already showing it or if we need to update icons
+             if (!document.getElementById('desktop-interface')) {
+                 screenContent.innerHTML = renderMainInterface();
+             }
+        } else {
+            screenContent.innerHTML = renderBootSequence();
+        }
+
+        lucide.createIcons();
+    }
+
+    // --- CRT VISUALS ---
+    function renderCRTOverlay() {
+        return `
+        <div class="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+            <div class="absolute inset-0 scanlines"></div>
+            <div class="absolute inset-0 bg-white opacity-[0.01]"></div>
+            <div class="absolute inset-0 crt-overlay"></div>
+        </div>`;
+    }
+
+    // --- BOOT SEQUENCE LOGIC ---
+    const BOOT_TEXT_FULL = [
+        "ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL",
+        "COPYRIGHT 2075-2077 ROBCO INDUSTRIES",
+        "-SERVER B-",
+        " ",
+        "> BIOS CHECK... OK",
+        "> LOADING KERNEL... OK",
+        "> CHECKING MEMORY... 64KB OK",
+        "> VERIFYING SYSTEM INTEGRITY...",
+        "  [OK] CPU_0 (Z80)",
+        "  [OK] CPU_1 (AUX)",
+        "  [!!] MEM_BLOCK_4 (CORRUPTED)",
+        "> MOUNTING VOLUMES...",
+        "  > /dev/hda1 (SYSTEM) ... MOUNTED",
+        "  > /dev/hda2 (DATA) ... MOUNTED",
+        "> LOADING MAP MODULE V3.0... INSTALLED",
+        "> LOADING MEDICAL DB... INSTALLED",
+        "> ESTABLISHING SECURE LINK...",
+        "  > KEY EXCHANGE... DONE",
+        "  > HANDSHAKE... DONE",
+        "> CONNECTING TO VAULT 254 LOCAL... ESTABLISHED",
+        " ",
+        "> INITIALIZING GRAPHICAL INTERFACE...",
+        "...",
+        "WELCOME, OVERSEER."
+    ];
+
+    function initBootProcess() {
+        if (window.bootInterval) clearInterval(window.bootInterval);
+        
+        let lineIndex = 0;
+        window.bootInterval = setInterval(() => {
+            if (lineIndex < BOOT_TEXT_FULL.length) {
+                const line = BOOT_TEXT_FULL[lineIndex];
+                window.state.bootLog.push(line);
+                // Force a render to show new line
+                renderApp(); 
+                lineIndex++;
+            } else {
+                clearInterval(window.bootInterval);
+                setTimeout(() => window.setState({ booted: true }), 1000);
+            }
+        }, 100); 
+    }
+
+    function renderBootSequence() {
+        return `
+            <div class="h-full w-full p-8 flex flex-col justify-end">
+                <div class="flex flex-col justify-end items-start overflow-hidden">
+                    ${window.state.bootLog.map(line => `<div class="mb-1 ${line.includes('[!!]') ? 'text-red-500' : 'text-green-500'}">${line}</div>`).join('')}
+                    <div class="animate-blink bg-green-500 h-4 w-3 mt-1 inline-block"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- DESKTOP INTERFACE ---
+    function renderMainInterface() {
+        const { showNote } = window.state;
+        // Static time for initial render, updated by interval later
+        const timeNow = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        return `
+        <div id="desktop-interface" class="h-full flex flex-col relative animate-fade-in">
+            <!-- Background Logo -->
+            <div class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                <div class="w-40 h-40 md:w-64 md:h-64 border-4 border-green-500 rounded-full flex items-center justify-center">
+                    <div class="text-6xl md:text-9xl font-bold text-green-500 tracking-tighter">V</div>
+                </div>
+            </div>
+
+            <!-- Icons Area -->
+            <div class="flex-1 p-4 md:p-6 flex content-start flex-wrap gap-2 md:gap-4 relative z-10 overflow-y-auto custom-scrollbar">
+                ${renderDesktopIcon('TERMINAL', 'terminal', "window.setState({ activeApp: 'terminal' })")}
+                ${renderDesktopIcon('MAIL', 'mail', "window.setState({ activeApp: 'mail' })")}
+                ${renderDesktopIcon('MAPS v3', 'map', "window.setState({ activeApp: 'map' })")}
+                ${renderDesktopIcon('STATUS', 'activity', "window.setState({ activeApp: 'status' })")}
+
+                <!-- Sticky Note -->
+                <div onclick="window.setState({ showNote: ${!showNote} })" 
+                     class="absolute bottom-12 right-4 md:bottom-10 md:right-10 bg-[#fef9c3] text-black p-3 md:p-4 w-40 md:w-48 shadow-lg cursor-pointer transition-all duration-300 ${showNote ? 'scale-110 z-50 rotate-0 opacity-100' : 'rotate-2 opacity-80 hover:opacity-100 hover:scale-105'}">
+                    <div class="text-[10px] border-b border-black/20 mb-1 pb-1 font-bold flex justify-between">
+                        <span>REMINDER</span>
+                        ${showNote ? '<i data-lucide="x" width="12"></i>' : ''}
+                    </div>
+                    <div class="font-handwriting text-xs leading-relaxed select-none">
+                        Don't forget the Override Key: <br/>
+                        <span class="font-mono bg-black/10 px-1 mt-1 inline-block font-bold">ADMIN_KEY</span>
+                        <br/><br/>
+                        - Drake
+                    </div>
+                </div>
+            </div>
+
+            <!-- Taskbar -->
+            <div class="h-10 md:h-12 border-t-2 border-green-700 bg-green-900/20 flex items-center px-2 md:px-4 justify-between z-20 shrink-0">
+                <div class="flex items-center gap-2 md:gap-4">
+                    <button class="bg-green-700 text-black px-3 py-1 font-bold text-xs hover:bg-green-500 flex items-center gap-1 transition-colors">
+                        <i data-lucide="menu" width="12"></i> START
+                    </button>
+                    <div class="h-6 w-px bg-green-800"></div>
+                </div>
+                <div class="text-[10px] md:text-xs text-green-600 font-mono flex items-center gap-4">
+                    <span class="hidden md:inline text-green-800">NET: LOC</span>
+                    <span class="hidden md:inline text-green-800">PWR: EXT</span>
+                    <span id="system-clock" class="text-green-400 font-bold">${timeNow}</span>
+                    <span>${CURRENT_DATE}</span>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function renderDesktopIcon(label, iconName, onClickAction) {
+        return `
+        <button onclick="${onClickAction}" class="flex flex-col items-center justify-center gap-2 p-2 md:p-4 rounded hover:bg-green-900/20 active:bg-green-900/40 group w-24 md:w-28 transition-all">
+            <div class="text-green-500 group-hover:text-green-300 group-hover:scale-110 transition-transform bg-black/50 p-2 rounded-lg border border-transparent group-hover:border-green-500/30">
+                <i data-lucide="${iconName}" width="32" height="32" class="w-8 h-8 md:w-10 md:h-10"></i>
+            </div>
+            <span class="text-[10px] md:text-xs font-bold text-green-600 group-hover:text-green-400 bg-black/70 px-2 py-1 rounded w-full text-center truncate border border-transparent group-hover:border-green-800 uppercase tracking-wider">
+                ${label}
+            </span>
+        </button>`;
+    }
+
+    // --- MODAL WINDOW SYSTEM ---
+    function renderModalWindow() {
+        const { activeApp } = window.state;
+        let content = '';
+        let title = '';
+        let icon = '';
+        let closeAction = "window.setState({ activeApp: null })";
+
+        switch (activeApp) {
+            case 'terminal': 
+                content = renderTerminalApp(); 
+                title = 'ROBCO FILE EXPLORER';
+                icon = 'terminal';
+                closeAction = "window.setState({ activeApp: null, terminal: { ...window.state.terminal, unlockTarget: null, viewingFile: null } })";
+                break;
+            case 'mail': 
+                content = renderMailApp(); 
+                title = 'FLASHMAIL v1.0';
+                icon = 'mail';
+                closeAction = "window.setState({ activeApp: null, mail: { selectedEmailId: null } })";
+                break;
+            case 'map': 
+                content = renderMapApp(); 
+                title = 'VAULT ARCHITECT 2.1';
+                icon = 'map';
+                closeAction = "window.setState({ activeApp: null, map: { selectedRoom: null } })";
+                break;
+            case 'status': 
+                content = renderStatusApp(); 
+                title = 'SYSTEM MONITOR';
+                icon = 'activity';
+                break;
+        }
+
+        return `
+        <div class="absolute inset-0 md:inset-8 z-40 p-2 md:p-0 bg-black/50 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none animate-fade-in font-mono text-green-500 flex items-center justify-center">
+            <div class="flex flex-col w-full h-full bg-black border-2 border-green-700 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
+                <!-- Header -->
+                <div class="bg-green-900/40 p-2 md:p-3 border-b border-green-700 flex justify-between items-center touch-none shrink-0">
+                    <div class="flex items-center gap-2 text-green-400 font-bold text-sm md:text-base">
+                        <i data-lucide="${icon}" width="18"></i>
+                        <span>${title}</span>
+                    </div>
+                    <button onclick="${closeAction}" class="text-green-500 hover:text-green-200 p-1 md:p-0 active:bg-green-800 rounded">
+                        <i data-lucide="x" width="20"></i>
+                    </button>
+                </div>
+                <!-- Content -->
+                <div class="flex-1 overflow-hidden relative bg-black/95">
+                    ${content}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // --- TERMINAL APP LOGIC ---
+    function renderTerminalApp() {
+        const { path, viewingFile, unlocked, unlockTarget, unlockInput } = window.state.terminal;
+        const currentFolder = FILE_SYSTEM[path[path.length - 1]];
+
+        // 1. Password Screen
+        if (unlockTarget) {
+            return `
+            <div class="flex flex-col items-center justify-center h-full animate-fade-in p-4 text-center bg-[radial-gradient(circle,rgba(20,50,20,0.3)_0%,rgba(0,0,0,1)_80%)]">
+                <i data-lucide="lock" width="48" class="text-red-500 mb-4 animate-pulse-slow"></i>
+                <h3 class="text-red-500 font-bold text-lg md:text-xl mb-4 tracking-widest">SECURITY CLEARANCE REQUIRED</h3>
+                <div class="flex flex-col gap-3 w-full max-w-xs">
+                    <input id="term-input" type="text" value="${unlockInput}" oninput="window.state.terminal.unlockInput = this.value" class="bg-black border border-green-500 text-green-500 p-3 text-center focus:outline-none uppercase text-lg shadow-[0_0_10px_rgba(0,255,0,0.2)]" placeholder="ENTER PASSWORD" autofocus>
+                    <div class="flex gap-2">
+                        <button onclick="window.setState({ terminal: { unlockTarget: null, unlockInput: '' } })" class="flex-1 border border-green-800 text-green-800 p-3 hover:bg-green-900/20 hover:text-green-500 transition-colors">CANCEL</button>
+                        <button onclick="attemptUnlock()" class="flex-1 bg-green-900/50 border border-green-700 text-green-100 p-3 font-bold hover:bg-green-500 hover:text-black transition-colors">AUTH</button>
+                    </div>
+                </div>
+                <div id="unlock-msg" class="mt-4 h-4 text-red-500 font-bold animate-blink"></div>
+            </div>`;
+        }
+
+        // 2. File Viewer
+        if (viewingFile) {
+            const file = FILE_SYSTEM[viewingFile];
+            return `
+            <div class="flex flex-col h-full animate-fade-in p-4 bg-[#050505]">
+                <div class="flex justify-between items-center mb-2 md:mb-4 border-b border-green-800 pb-2 shrink-0">
+                    <div class="flex flex-col">
+                        <span class="text-green-300 font-bold uppercase truncate pr-2 text-sm md:text-base">${file.name}</span>
+                        <span class="text-[10px] text-green-700">SIZE: 14KB | PERM: READ-ONLY</span>
+                    </div>
+                    <button onclick="window.setState({ terminal: { viewingFile: null } })" class="text-xs border border-green-500 px-3 py-1 active:bg-green-900 hover:bg-green-900/30">CLOSE</button>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar pb-10">
+                    <pre class="whitespace-pre-wrap font-mono text-green-400 text-xs md:text-sm leading-relaxed p-2">${file.content}</pre>
+                </div>
+            </div>`;
+        }
+
+        // 3. Folder Navigation
+        const pathDisplay = path.map(id => ` / ${FILE_SYSTEM[id].name}`).join('');
+        const children = currentFolder.children.map(childId => {
+            const item = FILE_SYSTEM[childId];
+            const isLocked = item.locked && !unlocked.includes(childId);
+            const icon = item.type === 'folder' 
+                ? (isLocked ? 'lock' : 'folder') 
+                : 'file-text';
+            const color = isLocked ? 'text-red-500' : (item.type === 'folder' ? 'text-yellow-500' : 'text-blue-400');
+            const borderColor = isLocked ? 'border-red-900/50 hover:border-red-500' : 'border-green-900 hover:border-green-400 hover:bg-green-900/20';
+            
+            return `
+            <button onclick="handleTerminalClick('${childId}')" class="flex items-start gap-3 p-3 md:p-4 border transition-all text-left active:bg-green-900/40 ${borderColor} group">
+                <i data-lucide="${icon}" width="20" class="${color} mt-1 min-w-[20px] group-hover:scale-110 transition-transform"></i>
+                <div class="overflow-hidden">
+                    <div class="font-bold text-sm truncate ${isLocked ? 'text-red-400' : 'text-green-300'}">${item.name}</div>
+                    <div class="text-[10px] text-green-700">${item.type === 'folder' ? 'DIR' : 'FILE'}</div>
+                </div>
+            </button>`;
+        }).join('');
+
+        return `
+        <div class="flex flex-col h-full p-4">
+            <div class="flex items-center gap-2 mb-2 md:mb-4 text-xs text-green-600 border-b border-green-900 pb-2 overflow-x-auto whitespace-nowrap shrink-0">
+                ${path.length > 1 ? `<button onclick="window.setState({ terminal: { path: window.state.terminal.path.slice(0, -1) } })" class="hover:text-green-400 flex items-center p-1"><i data-lucide="arrow-left" width="14"></i> UP</button>` : ''}
+                ${pathDisplay}
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto custom-scrollbar pb-8">
+                ${children}
+            </div>
+            <div class="mt-auto pt-2 border-t border-green-900 text-[10px] text-green-800 flex justify-between">
+                <span>FREE SPACE: 64KB</span>
+                <span>MOUNT: /dev/hda1</span>
+            </div>
+        </div>`;
+    }
+
+    window.handleTerminalClick = (id) => {
+        const item = FILE_SYSTEM[id];
+        const { unlocked, path } = window.state.terminal;
+
+        if (item.type === 'file') {
+            window.setState({ terminal: { viewingFile: id } });
+        } else {
+            if (item.locked && !unlocked.includes(id)) {
+                window.setState({ terminal: { unlockTarget: id, unlockInput: '' } });
+            } else {
+                window.setState({ terminal: { path: [...path, id] } });
+            }
+        }
+    };
+
+    window.attemptUnlock = () => {
+        const { unlockInput, unlockTarget, unlocked, path } = window.state.terminal;
+        if (unlockInput.trim().toUpperCase() === 'ADMIN_KEY') {
+            window.setState({ 
+                terminal: { 
+                    unlocked: [...unlocked, unlockTarget], 
+                    path: [...path, unlockTarget], 
+                    unlockTarget: null, 
+                    unlockInput: '' 
+                } 
+            });
+        } else {
+            const msg = document.getElementById('unlock-msg');
+            if (msg) {
+                msg.textContent = 'ACCESS DENIED';
+                setTimeout(() => msg.textContent = '', 2000);
+            }
+            window.state.terminal.unlockInput = '';
+            document.getElementById('term-input').value = '';
+        }
+    };
+
+    // --- MAIL APP LOGIC ---
+    function renderMailApp() {
+        const { selectedEmailId } = window.state.mail;
+        const selected = EMAILS.find(e => e.id === selectedEmailId);
+
+        const listHtml = EMAILS.map(email => `
+            <button onclick="window.setState({ mail: { selectedEmailId: '${email.id}' } })" 
+                class="w-full text-left p-3 md:p-4 border-b border-green-900 active:bg-green-900/30 transition-colors group ${selectedEmailId === email.id ? 'bg-green-900/50' : 'hover:bg-green-900/10'}">
+                <div class="flex justify-between items-start mb-1">
+                    <div class="font-bold text-green-300 text-xs md:text-sm truncate w-2/3 group-hover:text-green-100">${email.from}</div>
+                    <div class="text-green-700 text-[10px]">${email.date.split('.')[0] + '.' + email.date.split('.')[1]}</div>
+                </div>
+                <div class="text-green-500 text-xs md:text-sm truncate opacity-80">${email.subject}</div>
+            </button>
+        `).join('');
+
+        const detailHtml = selected ? `
+            <div class="animate-fade-in pb-10">
+                <div class="flex justify-between items-center mb-4 md:hidden">
+                    <button onclick="window.setState({ mail: { selectedEmailId: null } })" class="text-xs flex items-center gap-1 text-green-600 border border-green-800 px-2 py-1 rounded">
+                        <i data-lucide="arrow-left" width="12"></i> BACK
+                    </button>
+                </div>
+                
+                <div class="border border-green-800 bg-green-900/10 p-4 mb-4">
+                    <div class="grid grid-cols-[50px_1fr] gap-2 mb-2">
+                        <span class="text-green-600 text-xs">FROM:</span> <span class="text-green-300 text-xs">${selected.from}</span>
+                        <span class="text-green-600 text-xs">TO:</span> <span class="text-green-300 text-xs">${selected.to}</span>
+                        <span class="text-green-600 text-xs">DATE:</span> <span class="text-green-300 text-xs">${selected.date}</span>
+                    </div>
+                    <div class="text-base md:text-lg font-bold text-green-200 mt-4 border-t border-green-800 pt-2">${selected.subject}</div>
+                </div>
+                
+                <div class="text-green-400 whitespace-pre-wrap font-mono leading-relaxed text-sm md:text-base p-2">${selected.body}</div>
+                
+                <div class="mt-8 border-t border-green-800 pt-4 flex gap-2">
+                    <button class="px-4 py-2 border border-green-600 text-green-600 text-xs hover:bg-green-900/30" onclick="alert('ERROR: TRANSMITTER OFFLINE. LONG RANGE COMMS SEVERED.')">REPLY</button>
+                    <button class="px-4 py-2 border border-green-600 text-green-600 text-xs hover:bg-green-900/30">FORWARD</button>
+                    <button class="px-4 py-2 border border-green-600 text-green-600 text-xs hover:bg-green-900/30">DELETE</button>
+                </div>
+            </div>
+        ` : `<div class="h-full flex flex-col items-center justify-center text-green-800 text-sm">
+                <i data-lucide="mail" width="48" class="mb-4 opacity-50"></i>
+                <div>SELECT MESSAGE TO READ</div>
+             </div>`;
+
+        return `
+        <div class="flex flex-col md:flex-row flex-1 h-full overflow-hidden">
+            <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-green-800 overflow-y-auto custom-scrollbar ${selectedEmailId ? 'hidden md:block' : 'block'}">
+                ${listHtml}
+            </div>
+            <div class="flex-1 p-4 overflow-y-auto bg-black custom-scrollbar ${!selectedEmailId ? 'hidden md:block' : 'block'}">
+                ${detailHtml}
+            </div>
+        </div>`;
+    }
+
+    // --- MAP APP LOGIC ---
+    function renderMapApp() {
+        const { selectedRoom } = window.state.map;
+
+        let diagnosticOverlay = '';
+        if (selectedRoom) {
+            let roomContent = `<div class="text-green-500">SYSTEM NORMAL</div>`;
+            const roomType = selectedRoom.type;
+
+            if (roomType === 'reactor') {
+                roomContent = `
+                    <div class="space-y-3 font-mono text-sm text-green-300">
+                        <div class="flex justify-between"><span>OUTPUT:</span> <span class="animate-pulse-slow">98.4%</span></div>
+                        <div class="flex justify-between"><span>CORE TEMP:</span> <span class="text-yellow-500">4800K (HIGH)</span></div>
+                        <div class="flex justify-between"><span>TURBINE VIB:</span> <span class="text-red-500 animate-blink">CRITICAL</span></div>
+                        <div class="h-20 bg-green-900/20 border border-green-800 mt-2 relative overflow-hidden flex items-end gap-[1px]">
+                            ${[...Array(20)].map(() => `<div class="flex-1 bg-green-500 opacity-50 transition-all duration-300" style="height: ${Math.random() * 60 + 20}%"></div>`).join('')}
+                        </div>
+                        <div class="absolute top-1 left-1 text-[10px] text-green-600">HARMONIC RESONANCE</div>
+                        <div class="text-[10px] text-green-600 mt-2 border-t border-green-900 pt-1">SHIFT LOG: Engineer Wu reports audible humming from coolant pipes.</div>
+                    </div>`;
+            } else if (roomType === 'cryo') {
+                roomContent = `
+                    <div class="space-y-3 font-mono text-sm text-green-300">
+                        <div class="flex justify-between"><span>ACTIVE PODS:</span> <span>120/120</span></div>
+                        <div class="flex justify-between"><span>POWER DRAW:</span> <span>1.2 MW</span></div>
+                        <div class="flex justify-between"><span>STABILITY:</span> <span class="text-green-500">99.2%</span></div>
+                        <div class="border border-green-800 p-2 mt-2 bg-green-900/10">
+                            <div class="text-[10px] text-green-600 mb-1">POD 089 VITALS</div>
+                            <div class="w-full bg-black h-1 mb-1"><div class="bg-red-500 h-full w-[40%] animate-pulse-slow"></div></div>
+                            <div class="text-[10px] text-red-400">WARNING: NEURAL DECAY DETECTED</div>
+                        </div>
+                    </div>`;
+            } else if (roomType === 'comms') {
+                roomContent = `
+                    <div class="space-y-3 font-mono text-sm text-green-300">
+                         <div class="flex justify-between"><span>STATUS:</span> <span class="text-yellow-500">RECEIVING</span></div>
+                         <div class="flex justify-between"><span>SOURCE:</span> <span>UNKNOWN (EXT.)</span></div>
+                         <div class="border border-green-800 p-2 mt-2 bg-black relative h-32 flex items-center justify-center overflow-hidden">
+                             <div class="absolute inset-0 flex items-center justify-center gap-1">
+                                 ${[...Array(30)].map(() => `<div class="w-1 bg-green-400 animate-pulse-slow" style="height: ${Math.random() * 100}%; animation-duration: ${Math.random() * 0.5 + 0.2}s;"></div>`).join('')}
+                             </div>
+                             <div class="absolute top-2 left-2 text-[10px] bg-black/50 px-1">SPECTRAL ANALYSIS</div>
+                             <div class="absolute bottom-2 right-2 text-[10px] text-red-500 font-bold animate-blink">GHOST SIGNAL DETECTED</div>
+                         </div>
+                    </div>`;
+            }
+
+            diagnosticOverlay = `
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+                <div class="bg-black border-2 border-green-500 p-4 max-w-sm w-full shadow-[0_0_30px_rgba(0,255,0,0.15)] relative">
+                    <div class="flex justify-between items-center mb-4 border-b border-green-800 pb-2">
+                        <h3 class="text-green-400 font-bold uppercase flex items-center gap-2"><i data-lucide="activity" width="16"></i> ${selectedRoom.name} DIAGNOSTICS</h3>
+                        <button onclick="window.setState({ map: { selectedRoom: null } })"><i data-lucide="x" width="16" class="text-green-600 hover:text-green-300"></i></button>
+                    </div>
+                    ${roomContent}
+                </div>
+            </div>`;
+        }
+
+        const renderRoom = (name, status, size = 'normal', restricted = false, type = 'normal') => {
+            const sizeClass = size === 'large' ? 'col-span-2' : 'col-span-1';
+            const styleClass = restricted 
+                ? 'border-red-900/50 bg-red-900/5 hover:bg-red-900/20 text-red-500' 
+                : 'border-green-800/50 bg-green-900/5 hover:bg-green-900/20 hover:scale-[1.02] cursor-pointer text-green-400';
+            
+            const onclick = `onclick="window.setState({ map: { selectedRoom: { name: '${name}', type: '${type}', status: '${status}' } } })"`;
+
+            return `
+            <button ${onclick} class="border-2 p-2 relative group overflow-hidden transition-all min-h-[60px] flex flex-col justify-between text-left ${sizeClass} ${styleClass}">
+                <div class="text-[10px] md:text-xs font-bold w-full flex justify-between">
+                    ${name}
+                    ${!restricted ? '<i data-lucide="search" width="10" class="opacity-0 group-hover:opacity-100 transition-opacity"></i>' : '<i data-lucide="lock" width="10"></i>'}
+                </div>
+                <div class="text-[8px] md:text-[10px] text-green-700 font-mono flex items-center gap-1">
+                    <div class="w-1 h-1 rounded-full ${restricted ? 'bg-red-500' : 'bg-green-500'} animate-pulse-slow"></div>
+                    ${status}
+                </div>
+            </button>`;
+        };
+
+        const renderLevel = (depth, name, rooms) => `
+            <div class="flex gap-4 relative pl-8 pb-8">
+                <div class="absolute left-0 top-0 bottom-0 w-4 border-r-2 border-dashed border-green-800 flex flex-col items-center py-2">
+                    <div class="w-2 h-2 bg-green-800 rounded-full mb-2"></div>
+                    <span class="text-[8px] text-green-800 -rotate-90 whitespace-nowrap mt-8 origin-center">${depth}</span>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-xs font-bold text-green-600 mb-2 border-b border-green-900 inline-block px-2">${name}</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        ${rooms}
+                    </div>
+                </div>
+            </div>`;
+
+        return `
+        <div class="flex flex-col h-full relative">
+            <div class="flex-1 overflow-auto p-4 md:p-8 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] custom-scrollbar">
+                
+                <div class="mb-4 text-center">
+                    <div class="inline-block border border-yellow-800 text-yellow-700 px-4 py-1 text-xs mb-2">SURFACE // ZONE RED</div>
+                    <div class="h-8 w-px bg-green-800 mx-auto"></div>
+                    <div class="w-32 h-4 border-t-2 border-x-2 border-green-600 mx-auto rounded-t-lg bg-green-900/20"></div>
+                </div>
+
+                ${renderLevel('L1 -50m', 'ADMINISTRATION', 
+                    renderRoom('ENTRANCE', 'SEALED', 'large', false, 'normal') + 
+                    renderRoom('SECURITY', 'ACTIVE', 'normal', false, 'normal') + 
+                    renderRoom('OVERSEER', 'OCCUPIED', 'normal', true, 'admin') + 
+                    renderRoom('COMMS', 'SIGNAL DETECTED', 'normal', false, 'comms')
+                )}
+
+                ${renderLevel('L2 -100m', 'HABITATION', 
+                    renderRoom('RESIDENTIAL A', '98% CAP', 'large') + 
+                    renderRoom('RESIDENTIAL B', '100% CAP', 'large') + 
+                    renderRoom('CAFETERIA', 'OPEN', 'normal', false, 'cafeteria') +
+                    renderRoom('ATRIUM', 'LIGHTS ON')
+                )}
+
+                ${renderLevel('L3 -200m', 'OPERATIONS', 
+                    renderRoom('HYDROPONICS', 'YIELD LOW') + 
+                    renderRoom('MEDICAL', 'ACTIVE') + 
+                    renderRoom('WATER PURIF.', 'OPTIMAL', 'large')
+                )}
+
+                ${renderLevel('L4 -400m', 'RESTRICTED', 
+                    renderRoom('REACTOR', '98.4%', 'normal', false, 'reactor') + 
+                    renderRoom('ENGINEERING', 'ACTIVE') + 
+                    renderRoom('CRYO-BAY', 'STASIS', 'large', true, 'cryo')
+                )}
+            </div>
+            
+            <div class="p-2 border-t border-green-800 text-[10px] text-green-600 flex justify-between px-4 shrink-0 bg-black">
+                <span>INTEGRITY: 100%</span>
+                <span>SEALED: 198 YEARS</span>
+            </div>
+            ${diagnosticOverlay}
+        </div>`;
+    }
+
+    // --- STATUS APP LOGIC (IMPROVED) ---
+    function renderStatusApp() {
+        const seismicBars = [...Array(40)].map(() => {
+            const height = Math.random() * 80 + 10;
+            const duration = Math.random() + 0.5;
+            return `<div class="flex-1 bg-red-500/80" style="height: ${height}%; animation: pulse-slow ${duration}s infinite"></div>`;
+        }).join('');
+
+        const systemLogs = [
+            "[22:15] CRYO-089: Neural pattern fluctuation detected.",
+            "[21:40] WATER_CHIP: Filter efficiency dropped to 42%.",
+            "[21:00] SECURITY: Motion detected in Sector 4 (False Alarm?).",
+            "[20:30] REACTOR: Output stabilized at 98.4%.",
+            "[20:15] COMMS: Intermittent signal burst on channel 9.",
+            "[19:00] LIFE_SUPPORT: O2 cycling nominal.",
+        ];
+
+        return `
+        <div class="flex-1 overflow-y-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 pb-10 custom-scrollbar">
+            <!-- Reactor -->
+            <div class="border border-green-600 p-3 md:p-4 bg-green-900/5">
+                <h3 class="text-green-300 font-bold mb-4 flex items-center gap-2 text-sm md:text-base"><i data-lucide="cpu" width="16"></i> REACTOR OUTPUT</h3>
+                <div class="h-4 w-full bg-green-900/50 mb-1">
+                    <div class="h-full bg-green-500 w-[98%] animate-pulse-slow"></div>
+                </div>
+                <div class="text-right text-xs text-green-400">98.4% NOMINAL</div>
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between text-xs text-green-600"><span>COOLANT PUMP A</span> <span>OK</span></div>
+                    <div class="flex justify-between text-xs text-green-600"><span>COOLANT PUMP B</span> <span class="text-yellow-500 animate-blink">VIBRATION</span></div>
+                </div>
+            </div>
+
+            <!-- Life Support -->
+            <div class="border border-green-600 p-3 md:p-4 bg-green-900/5">
+                <h3 class="text-green-300 font-bold mb-4 flex items-center gap-2 text-sm md:text-base"><i data-lucide="users" width="16"></i> LIFE SUPPORT</h3>
+                <div class="flex justify-between items-end h-16 md:h-20 gap-2 mb-2">
+                    <div class="w-1/4 bg-green-900/30 h-full relative"><div class="absolute bottom-0 w-full bg-green-500 h-[80%]"></div></div>
+                    <div class="w-1/4 bg-green-900/30 h-full relative"><div class="absolute bottom-0 w-full bg-green-500 h-[82%]"></div></div>
+                    <div class="w-1/4 bg-green-900/30 h-full relative"><div class="absolute bottom-0 w-full bg-green-500 h-[79%]"></div></div>
+                    <div class="w-1/4 bg-green-900/30 h-full relative"><div class="absolute bottom-0 w-full bg-green-500 h-[81%]"></div></div>
+                </div>
+                <div class="text-center text-xs text-green-400">O2 LEVELS STABLE</div>
+            </div>
+
+            <!-- Sensors -->
+            <div class="border border-red-900 p-3 md:p-4 col-span-1 md:col-span-2 bg-red-900/10">
+                <h3 class="text-red-400 font-bold mb-2 flex items-center gap-2 text-sm md:text-base"><i data-lucide="radio" width="16"></i> SURFACE SENSORS</h3>
+                <div class="mb-4 h-24 border-b border-red-900/50 flex items-end gap-[2px] overflow-hidden opacity-90 p-2 bg-black/50">
+                    ${seismicBars}
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-xs">
+                    <div class="p-2 border border-green-800 text-green-600">SEISMIC<br/><span class="text-yellow-500 animate-pulse-slow">ACTIVITY</span></div>
+                    <div class="p-2 border border-green-800 text-green-600">AUDIO<br/><span class="text-green-400">STATIC</span></div>
+                    <div class="p-2 border border-green-800 text-green-600">THERMAL<br/><span class="text-green-400">NORMAL</span></div>
+                    <div class="p-2 border border-red-800 text-red-500 animate-blink">RADS<br/>HIGH</div>
+                </div>
+            </div>
+
+            <!-- System Logs (New) -->
+            <div class="border border-green-800 p-3 md:p-4 col-span-1 md:col-span-2 bg-black">
+                 <h3 class="text-green-500 font-bold mb-2 flex items-center gap-2 text-sm md:text-base"><i data-lucide="file-text" width="16"></i> RECENT LOGS</h3>
+                 <div class="h-32 overflow-y-auto custom-scrollbar font-mono text-xs text-green-400 space-y-1">
+                     ${systemLogs.map(log => `<div>${log}</div>`).join('')}
+                     <div class="text-green-700">... END OF STREAM ...</div>
+                 </div>
+            </div>
+        </div>`;
+    }
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+        initBootProcess();
+        renderApp();
+    });
+
+</script>
+</body>
+</html>
