@@ -90,7 +90,7 @@
         background-image: radial-gradient(#111 1px, transparent 1px);
         background-size: 10px 10px;
     }
-html { font-size: 20px; }
+html { font-size: 18px; }
 body {
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -122,13 +122,13 @@ body {
     width: 100%;
     text-align: left;
     padding: 0.35rem 0.75rem;
-    font-size: 1.7rem;
+    font-size: 1.25rem;
     border: 0;
     background: transparent;
     color: var(--color-primary);
     cursor: pointer;
 }
-.menu-item:hover, .menu-item:focus {
+.menu-item.selected, .menu-item:hover, .menu-item:focus {
     background: var(--color-primary);
     color: #000;
     text-shadow: none;
@@ -147,3 +147,18 @@ body {
     text-shadow: none;
 }
 ::selection { background: var(--color-primary); color: #000; }
+body { text-shadow: 0 0 5px rgba(26, 255, 110, 0.55); }
+*, *::before, *::after { border-radius: 0 !important; }
+img { filter: drop-shadow(0 0 8px rgba(26, 255, 110, 0.6)); }
+@keyframes type-reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.type-line {
+    width: fit-content;
+    animation: type-reveal 0.8s steps(36) both;
+}
+[class*="text-red-"], [class*="text-yellow-"], [class*="text-blue-"] { color: var(--color-primary) !important; }
+[class*="border-red-"], [class*="border-yellow-"], [class*="border-blue-"] { border-color: #12c452 !important; }
+[class*="bg-red-"], [class*="bg-yellow-"], [class*="bg-blue-"] { background-color: var(--color-primary) !important; }
+[class*="bg-red-"][class*="/"], [class*="bg-yellow-"][class*="/"], [class*="bg-blue-"][class*="/"],
+[class*="bg-red-900"], [class*="bg-yellow-900"], [class*="bg-green-900"], [class*="bg-green-500/"],
+[class*="bg-black/"] { background-color: transparent !important; }
+[class*="shadow-"] { box-shadow: none !important; }

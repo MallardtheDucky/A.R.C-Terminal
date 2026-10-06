@@ -1,25 +1,29 @@
 function renderLoginScreen() {
     return `
-    <div class="h-full w-full flex flex-col justify-center px-6 md:px-20 relative">
-        <img src="assets/logo.png" alt="A.R.C." class="h-20 md:h-36 w-auto self-start mb-5">
-        <div class="text-xl md:text-4xl leading-tight tracking-widest">
-            <div>ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL</div>
-            <div>VAULT-TEC ADMINISTRATIVE RECLAMATION COMMAND</div>
-            <div>VAULT 254 // OVERSEER TERMINAL</div>
-        </div>
-        <div class="border-b-2 border-green-500 my-6 md:my-8"></div>
-        <div class="text-xl md:text-3xl">
-            <div class="mb-6">USER: OVERSEER_V.CALDWELL</div>
-            <div class="flex items-center gap-3">
-                <span class="whitespace-nowrap">ENTER PASSWORD NOW &gt;</span>
-                <input id="login-input" type="password" class="login-input" autocomplete="off" spellcheck="false"
-                    oninput="clearLoginError()"
-                    onkeydown="if(event.key === 'Enter') attemptLogin()">
+    <div class="h-full w-full flex flex-col items-center justify-center px-5 relative">
+        <div class="w-full max-w-2xl">
+            <div class="flex flex-col items-center text-center">
+                <img src="assets/logo.png" alt="A.R.C." class="h-16 md:h-24 w-auto mb-4">
+                <div class="text-base md:text-xl leading-tight tracking-widest">
+                    <div class="type-line mx-auto">ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL</div>
+                    <div class="type-line mx-auto" style="animation-delay: 0.9s">VAULT-TEC ADMINISTRATIVE RECLAMATION COMMAND</div>
+                    <div class="type-line mx-auto" style="animation-delay: 1.8s">VAULT 254 // OVERSEER TERMINAL</div>
+                </div>
             </div>
-            <div id="login-error" class="h-8 mt-4 text-red-500"></div>
-            <button onclick="attemptLogin()" class="menu-button mt-4 text-lg">[ ENTER ]</button>
+            <div class="border-b border-green-500 my-5"></div>
+            <div class="text-base md:text-xl">
+                <div class="mb-4">USER: OVERSEER_V.CALDWELL</div>
+                <div class="flex items-center gap-3">
+                    <span class="whitespace-nowrap">ENTER PASSWORD NOW &gt;</span>
+                    <input id="login-input" type="password" class="login-input" autocomplete="off" spellcheck="false"
+                        oninput="clearLoginError()"
+                        onkeydown="if(event.key === 'Enter') attemptLogin()">
+                </div>
+                <div id="login-error" class="h-6 mt-3 text-red-500"></div>
+                <button onclick="attemptLogin()" class="menu-button mt-2">[ ENTER ]</button>
+            </div>
         </div>
-        <div class="absolute bottom-4 left-0 w-full px-4 text-center text-sm text-green-700">
+        <div class="absolute bottom-3 left-0 w-full px-4 text-center text-xs md:text-sm text-green-700">
             UNAUTHORIZED ACCESS IS A CLASS A FELONY PUNISHABLE BY IMMEDIATE TERMINATION
         </div>
     </div>`;
@@ -30,18 +34,10 @@ function clearLoginError() {
     if (el) el.textContent = '';
 }
 
-function enterFullscreen() {
-    const el = document.documentElement;
-    if (!document.fullscreenElement && el.requestFullscreen) {
-        el.requestFullscreen().catch(() => {});
-    }
-}
-
 function attemptLogin() {
     const input = document.getElementById('login-input');
     if (!input) return;
     if (input.value.trim().toLowerCase() === CONFIG.loginPassword) {
-        enterFullscreen();
         window.setState({ loggedIn: true });
         initBootProcess();
     } else {
