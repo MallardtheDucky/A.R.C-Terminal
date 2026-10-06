@@ -102,7 +102,7 @@ function renderEnhancedSensorDetail(type) {
     let graph = '';
     let stats = '';
     let colorTheme = 'green';
-    const hexLog = [...Array(10)].map(() => 
+    const hexLog = [...Array(9)].map(() => 
         `0x${Math.floor(Math.random()*16777215).toString(16).toUpperCase().padStart(6, '0')} :: ${Math.random() > 0.5 ? 'READ' : 'WAIT'}`
     ).join('<br>');
     if (type === 'SEISMIC') {
@@ -111,7 +111,7 @@ function renderEnhancedSensorDetail(type) {
         const bars = [...Array(30)].map((_, i) => {
             const delay = Math.random() * 2;
             const duration = 0.5 + Math.random();
-            return `<div class="w-2 bg-red-500/80 mx-[1px]" style="animation: bar-dance ${duration}s infinite ease-in-out -${delay}s;"></div>`;
+            return `<div class="sensor-bar w-2 mx-[1px]" style="animation: bar-dance ${duration}s infinite ease-in-out -${delay}s;"></div>`;
         }).join('');
         graph = `
         <div class="h-64 flex gap-2">
@@ -125,7 +125,7 @@ function renderEnhancedSensorDetail(type) {
                     ${bars}
                 </div>
             </div>
-            <div class="w-24 border border-red-900 bg-black text-[8px] text-red-700 font-mono p-1 overflow-hidden leading-tight hidden md:block">
+            <div class="sensor-log w-56 border border-red-900 bg-black text-[8px] text-red-700 font-mono p-1 leading-tight hidden md:block">
                 <div class="opacity-50">RAW_DATA_STREAM</div>
                 <div class="mt-2" style="animation: quick-flicker 2s infinite">${hexLog}</div>
             </div>
@@ -143,7 +143,7 @@ function renderEnhancedSensorDetail(type) {
         colorTheme = 'green';
         const bars = [...Array(20)].map((_, i) => {
              const height = Math.random() * 100;
-             return `<div class="w-full bg-green-500/50 border-t-2 border-green-300" style="height: ${height}%; animation: bar-dance ${0.2 + Math.random()*0.5}s infinite alternate;"></div>`;
+             return `<div class="sensor-bar w-full border-t-2 border-green-300" style="height: ${height}%; animation: bar-dance ${0.2 + Math.random()*0.5}s infinite alternate;"></div>`;
         }).join('');
         graph = `
         <div class="h-64 flex gap-2">
@@ -153,7 +153,7 @@ function renderEnhancedSensorDetail(type) {
                     ${bars}
                 </div>
             </div>
-            <div class="w-24 border border-green-900 bg-black text-[8px] text-green-700 font-mono p-1 overflow-hidden leading-tight hidden md:block">
+            <div class="sensor-log w-56 border border-green-900 bg-black text-[8px] text-green-700 font-mono p-1 leading-tight hidden md:block">
                 <div class="opacity-50">DECRYPTION_LOG</div>
                 <div class="mt-2">${hexLog}</div>
             </div>
@@ -163,7 +163,7 @@ function renderEnhancedSensorDetail(type) {
             <div class="border border-green-900/50 p-2">SIGNAL: <span class="text-green-300 font-bold animate-glitch">ENCLAVE_RADIO_LOOP</span></div>
             <div class="border border-green-900/50 p-2">CONFIDENCE: <span class="text-green-300">98%</span></div>
             <div class="border border-green-900/50 p-2">ORIGIN: <span class="text-yellow-500">UNKNOWN</span></div>
-            <div class="border border-green-900/50 p-2">STATUS: <span class="text-red-500 animate-blink">DECRYPTING...</span></div>
+            <div class="border border-green-900/50 p-2">STATUS: <span class="text-red-500 animate-glitch">DECRYPTING...</span></div>
         </div>`;
     }
     else if (type === 'RADIATION') {
@@ -182,7 +182,7 @@ function renderEnhancedSensorDetail(type) {
                 <div class="absolute top-2 left-2 text-[10px] text-red-500 font-bold animate-blink">DANGER: HIGH LEVELS</div>
                 ${bars}
             </div>
-            <div class="w-24 border border-yellow-900 bg-black text-[8px] text-yellow-700 font-mono p-1 overflow-hidden leading-tight hidden md:block">
+            <div class="sensor-log w-56 border border-yellow-900 bg-black text-[8px] text-yellow-700 font-mono p-1 leading-tight hidden md:block">
                 <div class="opacity-50">RAD_DOSIMETER</div>
                 <div class="mt-2">${hexLog}</div>
             </div>
@@ -204,7 +204,7 @@ function renderEnhancedSensorDetail(type) {
             <div class="flex justify-between items-center mb-4 border-b border-${colorTheme}-800 pb-2">
                 <h2 class="text-${colorTheme}-400 font-bold text-lg">${title}</h2>
                 <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-${colorTheme}-500 animate-blink"></div>
+                    <div class="w-2 h-2 rounded-full bg-${colorTheme}-500 animate-pulse-slow"></div>
                     <span class="text-[10px] text-${colorTheme}-500">ONLINE</span>
                 </div>
             </div>

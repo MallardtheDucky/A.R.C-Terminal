@@ -80,10 +80,9 @@
         margin-right: 2px; 
     }
     .grid-bg {
-        background-image: linear-gradient(var(--color-secondary) 1px, transparent 1px),
-        linear-gradient(90deg, var(--color-secondary) 1px, transparent 1px);
+        background-image: linear-gradient(rgba(26, 255, 110, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26, 255, 110, 0.07) 1px, transparent 1px);
         background-size: 20px 20px;
-        opacity: 0.2;
     }
     .modal-solid-bg {
         background-color: #000000; 
@@ -162,3 +161,5 @@ img { filter: drop-shadow(0 0 8px rgba(26, 255, 110, 0.6)); }
 [class*="bg-red-900"], [class*="bg-yellow-900"], [class*="bg-green-900"], [class*="bg-green-500/"],
 [class*="bg-black/"] { background-color: transparent !important; }
 [class*="shadow-"] { box-shadow: none !important; }
+.sensor-bar { background-color: rgba(26, 255, 110, 0.55) !important; }
+.sensor-log { white-space: nowrap; overflow: hidden; }
