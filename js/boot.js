@@ -47,7 +47,7 @@ function renderBootSequence() {
         <div class="h-full w-full p-4 md:p-8 flex justify-center bg-black">
             <div class="w-full max-w-2xl flex flex-col h-full">
                 <div class="flex-1 min-h-0 flex flex-col items-center justify-center gap-3">
-                    <img src="assets/loading.gif" alt="" class="max-h-full w-full max-w-xs object-contain">
+                    <img src="assets/loading.gif?v=5" alt="" class="max-h-full w-full max-w-xs object-contain">
                     <div class="text-lg md:text-xl tracking-widest">LOADING<span class="animate-blink">_</span></div>
                     <div class="w-full max-w-xs h-2 border border-green-500">
                         <div id="boot-progress" class="h-full bg-green-500" style="width: 0%"></div>

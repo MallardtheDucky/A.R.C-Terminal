@@ -40,7 +40,7 @@ function renderMainInterface() {
     <div id="desktop-interface" class="h-full flex justify-center p-4 md:p-8">
         <div class="w-full max-w-3xl flex flex-col h-full">
             <div class="flex flex-col items-center text-center shrink-0">
-                <img src="assets/logo.png" alt="A.R.C." class="h-14 md:h-20 w-auto mb-3">
+                <img src="assets/logo.png?v=5" alt="A.R.C." class="h-14 md:h-20 w-auto mb-3">
                 <div class="text-base md:text-xl leading-tight tracking-widest">
                     <div class="type-line mx-auto">ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM</div>
                     <div class="type-line mx-auto" style="animation-delay: 0.7s">COPYRIGHT 2075-2077 ROBCO INDUSTRIES</div>

@@ -3,7 +3,7 @@ function renderLoginScreen() {
     <div class="h-full w-full flex flex-col items-center justify-center px-5 relative">
         <div class="w-full max-w-2xl">
             <div class="flex flex-col items-center text-center">
-                <img src="assets/logo.png" alt="A.R.C." class="h-16 md:h-24 w-auto mb-4">
+                <img src="assets/logo.png?v=5" alt="A.R.C." class="h-16 md:h-24 w-auto mb-4">
                 <div class="text-base md:text-xl leading-tight tracking-widest">
                     <div class="type-line mx-auto">ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL</div>
                     <div class="type-line mx-auto" style="animation-delay: 0.9s">VAULT-TEC ADMINISTRATIVE RECLAMATION COMMAND</div>
