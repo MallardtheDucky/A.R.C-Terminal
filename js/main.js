@@ -2,7 +2,9 @@ document.addEventListener('keydown', (e) => {
     const { booted, activeApp } = window.state;
     if (!booted) return;
     if (window.state.terminal.hacking) return; // hack game handles its own keys
-    if (e.key === 'Escape' && activeApp) {
+    if (e.key === 'Escape' && activeApp === 'map' && window.state.map.selectedRoom) {
+        window.setState({ map: { selectedRoom: null } });
+    } else if (e.key === 'Escape' && activeApp) {
         closeApp();
     } else if (!activeApp && e.key === 'ArrowDown') {
         e.preventDefault();

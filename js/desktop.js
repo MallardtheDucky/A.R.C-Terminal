@@ -17,7 +17,7 @@ function closeApp() {
         activeApp: null,
         terminal: { unlockTarget: null, unlockInput: '', viewingFile: null, hacking: null },
         mail: { selectedEmailId: null },
-        map: { selectedRoom: null },
+        map: { selectedRoom: null, selectedContact: null },
         status: { selectedSensor: null }
     });
 }
@@ -38,7 +38,7 @@ function renderMainInterface() {
 
     return `
     <div id="desktop-interface" class="h-full flex justify-center p-4 md:p-8">
-        <div class="w-full max-w-3xl flex flex-col h-full">
+        <div class="w-full max-w-5xl flex flex-col h-full">
             <div class="flex flex-col items-center text-center shrink-0">
                 <img src="assets/logo.png?v=5" alt="A.R.C." class="h-14 md:h-20 w-auto mb-3">
                 <div class="text-base md:text-xl leading-tight tracking-widest">
@@ -49,9 +49,21 @@ function renderMainInterface() {
             </div>
             <div class="border-b border-green-500 my-4 shrink-0"></div>
             <div class="text-base md:text-xl mb-3 type-line shrink-0" style="animation-delay: 2s">VAULT 254 // A.R.C. OVERSEER TERMINAL</div>
-            <div class="flex-1 overflow-y-auto custom-scrollbar">
-                ${items}
-                <div class="px-3 py-1 text-xl"><span class="cursor-block"></span></div>
+            <div class="flex-1 min-h-0 flex gap-6">
+                <div class="flex-1 overflow-y-auto custom-scrollbar">
+                    ${items}
+                    <div class="px-3 py-1 text-xl"><span class="cursor-block"></span></div>
+                </div>
+                <div class="vb-panel">
+                    <img class="vb" src="assets/img/vault-boy-walk.png" alt="">
+                    <div class="text-lg tracking-widest">VAULT 254</div>
+                    <div class="vb-row"><span>POPULATION</span><b>1,006</b></div>
+                    <div class="vb-row"><span>REACTOR</span><b class="vb-warn">98.4%</b></div>
+                    <div class="vb-row"><span>WATER CHIP</span><b class="vb-bad">LAST</b></div>
+                    <div class="vb-row"><span>O2 / TEMP</span><b>98% / 22C</b></div>
+                    <div class="vb-row"><span>SURFACE</span><span class="flex items-center gap-1"><img src="assets/img/radiation.png" alt="" style="width:14px;height:14px"><b class="vb-bad">LETHAL</b></span></div>
+                    <div class="vb-row" style="border:0"><span>BLAST DOOR</span><b>SEALED</b></div>
+                </div>
             </div>
             <div class="border-t border-green-500 pt-2 flex flex-wrap justify-between gap-2 text-sm md:text-lg shrink-0">
                 <div class="animate-glitch">&#9888; SURFACE SEISMIC ACTIVITY DETECTED</div>

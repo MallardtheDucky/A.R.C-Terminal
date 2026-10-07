@@ -37,7 +37,7 @@ function renderMailApp() {
             </div>
         </div>
     ` : `<div class="h-full flex flex-col items-center justify-center text-green-800">
-            <i data-lucide="mail" width="64" class="mb-4 opacity-20"></i>
+            <img src="assets/img/vault-boy.png" alt="" style="height:9rem;opacity:.85" class="mb-4">
             <div class="text-sm tracking-widest">SELECT MESSAGE</div>
          </div>`;
     return `

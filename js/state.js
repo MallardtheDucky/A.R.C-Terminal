@@ -17,7 +17,9 @@ window.state = {
         selectedEmailId: null,
     },
     map: {
-        selectedRoom: null, 
+        selectedRoom: null,
+        tab: 'vault',
+        selectedContact: null,
     },
     status: {
         selectedSensor: null, 

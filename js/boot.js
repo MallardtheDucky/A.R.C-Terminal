@@ -1,15 +1,21 @@
 const BOOT_TEXT_FULL = [
     "VAULT-TEC BIOS v6.21",
-    "COPYRIGHT 2077 ROBCO INDUSTRIES",
+    "COPYRIGHT 2075-2077 ROBCO INDUSTRIES",
+    "EFI: RobCo Unified Operating System v85",
     "INITIALIZING HARDWARE...",
-    "> CPU_MAIN (ZAX-PC) ... OK",
-    "> MEMORY_BANK_0 ... OK",
-    "> MEMORY_BANK_1 ... OK",
-    "> CRYOGENIC CONTROLS ... LINKED",
-    "> WATER CHIP ... DETECTED",
+    "> CPU_MAIN (ZAX-PC) ........ 4 CORES OK",
+    "> MEMORY_BANK_0 ........... 65536K OK",
+    "> MEMORY_BANK_1 ........... 65536K OK",
+    "> HOLOTAPE READER ......... READY",
+    "> CRYOGENIC CONTROLS ...... LINKED",
+    "> WATER CHIP 2077-B ....... DETECTED",
+    "> REACTOR TELEMETRY ....... 98.4%  [VIBRATION]",
+    "> SURFACE SENSOR ARRAY .... RADS: LETHAL",
     "LOADING OS...",
     "MOUNTING DRIVE: A.R.C. ARCHIVE ... DONE",
     "CONNECTING TO NETWORK: LOCAL VAULT 254 ... DONE",
+    "SYNCING FACILITY SCHEMATICS ... 4 LEVELS, 15 SECTIONS",
+    "CHECKING POD INTEGRITY ... POD 089 FLAGGED",
     " ",
     "WELCOME, OVERSEER CALDWELL.",
     "REMINDER: RECLAMATION DAY IS PENDING.",
@@ -39,7 +45,7 @@ function initBootProcess() {
             clearInterval(window.bootInterval);
             setTimeout(() => window.setState({ booted: true }), 1200);
         }
-    }, 220);
+    }, 180);
 }
 
 function renderBootSequence() {

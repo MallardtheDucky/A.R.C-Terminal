@@ -6,7 +6,7 @@ function renderStatusApp() {
     return `
     <div class="flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 custom-scrollbar">
         <div class="border border-green-600 bg-green-900/10 p-4">
-            <h3 class="text-green-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="users" width="16"></i> POPULATION</h3>
+            <h3 class="text-green-400 font-bold mb-4 flex items-center gap-2"><img src="assets/img/vault-boy-walk.png" alt="" style="height:28px"> POPULATION</h3>
             <div class="grid grid-cols-3 gap-2 text-center">
                 <div class="bg-black/40 p-2 rounded">
                     <div class="text-2xl font-bold text-green-500">880</div>
@@ -26,7 +26,7 @@ function renderStatusApp() {
             </div>
         </div>
         <div class="border border-green-600 bg-green-900/10 p-4">
-            <h3 class="text-green-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="zap" width="16"></i> REACTOR</h3>
+            <h3 class="text-green-400 font-bold mb-4 flex items-center gap-2"><img src="assets/img/bolt.png" alt="" style="height:20px"> REACTOR</h3>
             <div class="h-4 w-full bg-black mb-2 border border-green-800 overflow-hidden">
                 <div class="h-full bg-green-500 w-[98%] animate-pulse-slow"></div>
             </div>
@@ -40,7 +40,7 @@ function renderStatusApp() {
         </div>
         <div class="col-span-1 md:col-span-2 border border-red-900/50 bg-red-900/5 p-4 relative overflow-hidden">
             <div class="absolute top-0 right-0 bg-red-900/20 px-2 py-1 text-[10px] text-red-500 font-bold animate-pulse">ZONE RED</div>
-            <h3 class="text-red-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="radar" width="16"></i> SURFACE SENSORS</h3>
+            <h3 class="text-red-400 font-bold mb-4 flex items-center gap-2"><img src="assets/img/radiation.png" alt="" style="height:20px"> SURFACE SENSORS</h3>
             <div class="grid grid-cols-3 gap-2">
                 <button onclick="window.setState({ status: { selectedSensor: 'SEISMIC' } })" class="p-3 border border-red-900/30 hover:bg-red-900/20 hover:border-red-500 transition-all text-center relative overflow-hidden">
                     <div class="text-red-500 font-bold text-sm mb-1 z-10 relative">SEISMIC</div>

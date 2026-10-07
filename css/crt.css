@@ -165,3 +165,56 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
 .hack-pw-box { position: absolute; inset: 0; z-index: 5; background: var(--screen-bg); display: flex; align-items: center; justify-content: center; padding: 1rem; font-size: 1.3rem; }
 .hack-pw-inner { width: 100%; max-width: 42rem; }
 #hack-pw-err { color: var(--color-primary); }
+
+/* ============================================================
+   FALLOUT TERMINAL FONT (Monofonto, from the PipBoy-3000-Interface repo)
+   ============================================================ */
+@font-face { font-family: 'Monofonto'; src: url('../assets/fonts/monofonto.ttf') format('truetype'); font-display: swap; }
+body, #root .font-mono, #root button, #root input, #root pre { font-family: 'Monofonto', 'VT323', 'Courier New', monospace !important; }
+body { letter-spacing: .02em; }
+
+/* ============================================================
+   MAP: cross-section + surface scan
+   ============================================================ */
+.map-room { cursor: pointer; }
+.map-room rect { transition: fill .15s, filter .15s; }
+.map-room:hover rect { fill: rgba(26,255,110,.22); filter: drop-shadow(0 0 6px rgba(26,255,110,.8)); }
+.room-card { transition: background .15s, box-shadow .15s; }
+.room-card:hover { background: rgba(26,255,110,.15) !important; box-shadow: 0 0 12px rgba(26,255,110,.4); }
+.map-tab { padding: .2rem .6rem; color: #0c8c3b; letter-spacing: .1em; }
+.map-tab:hover { color: var(--color-primary); }
+.map-tab.active { background: var(--color-primary); color: #021; text-shadow: none; }
+.map-frame { position: relative; aspect-ratio: 1 / 1; max-height: 68vh; width: 100%; margin: 0 auto; border: 2px solid rgba(26,255,110,.5); overflow: hidden; background: #01100a; box-shadow: inset 0 0 40px rgba(0,0,0,.8), 0 0 18px rgba(26,255,110,.2); }
+.map-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(1.5) contrast(1.15) saturate(1.2); opacity: .9; }
+.map-grid { position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(26,255,110,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(26,255,110,.12) 1px, transparent 1px);
+    background-size: 10% 10%; }
+.map-sweep { position: absolute; left: 0; right: 0; height: 18%; z-index: 2; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(26,255,110,0), rgba(26,255,110,.22), rgba(26,255,110,0));
+    animation: map-sweep 5s linear infinite; }
+@keyframes map-sweep { from { top: -18%; } to { top: 100%; } }
+.map-pin { position: absolute; z-index: 3; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.map-pin-dot { width: 12px; height: 12px; background: var(--pin); box-shadow: 0 0 10px var(--pin), 0 0 0 3px rgba(0,0,0,.6); animation: blink 1.4s step-end infinite; }
+.map-pin.active .map-pin-dot { animation: none; outline: 2px solid var(--pin); outline-offset: 3px; }
+.map-pin-label { font-size: .75rem; background: rgba(0,0,0,.75); color: var(--pin); padding: 0 .25rem; white-space: nowrap; opacity: 0; transition: opacity .15s; }
+.map-pin:hover .map-pin-label, .map-pin.active .map-pin-label { opacity: 1; }
+@media (max-width: 640px) { .map-pin-label { display: none; } .map-pin.active .map-pin-label { display: block; position: absolute; top: 14px; left: 0; } }
+
+/* ============================================================
+   MAIN MENU side panel / extra detail
+   ============================================================ */
+.vb-panel { border: 1px solid rgba(26,255,110,.5); background: rgba(0,40,20,.35); padding: .75rem; width: 15rem; flex: none; display: none; flex-direction: column; align-items: center; gap: .5rem; box-shadow: inset 0 0 20px rgba(26,255,110,.12); }
+@media (min-width: 900px) and (min-height: 560px) { .vb-panel { display: flex; } }
+.vb-panel img.vb { height: 11rem; width: auto; filter: drop-shadow(0 0 8px rgba(26,255,110,.7)); animation: pulse-slow 4s ease-in-out infinite; }
+.vb-row { display: flex; justify-content: space-between; width: 100%; font-size: .95rem; border-bottom: 1px dotted rgba(26,255,110,.25); }
+.vb-row b { font-weight: normal; }
+.vb-warn { color: #eab308; }
+.vb-bad { color: #ef4444; }
+
+.ring-round { border-radius: 50% !important; }
+.vb-panel { max-height: 100%; overflow: hidden; }
+.vb-panel img.vb { height: clamp(4.5rem, 20vh, 11rem); }
+.map-frame { width: min(100%, 62vh); max-height: none; }
+.vb-panel img.vb { height: clamp(4rem, 15vh, 9rem); }
+.vb-panel { gap: .3rem; padding: .5rem .75rem; }
+.vb-row { font-size: .85rem; }
