@@ -15,7 +15,9 @@ const HACK_WORDS = {
 const HACK_JUNK = '!@#$%^&*()_-+=[]{}<>;:\'",./?|\\`~';
 const HACK_PAIRS = { '(': ')', '[': ']', '{': '}', '<': '>' };
 const HACK_ROWS = 17, HACK_W = 12, HACK_COLS = 2, HACK_TOTAL = HACK_ROWS * HACK_W * HACK_COLS;
-const HACK_MAX_TRIES = 4, HACK_LOCK_SECONDS = 30;
+const HACK_MAX_TRIES = 4, HACK_LOCK_SECONDS = 60;
+const HACK_LOGIN = '__login';
+const HACK_LOCK_KEY = 'arc_terminal_lockout_until';
 
 window.hackGame = null;
 
@@ -25,16 +27,16 @@ function hackShuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) 
 /* Likeness = number of letters matching in the same position */
 function hackLikeness(a, b) { let n = 0; for (let i = 0; i < a.length; i++) if (a[i] === b[i]) n++; return n; }
 
-function hackDifficulty(targetId) {
-    const t = typeof FILE_SYSTEM !== 'undefined' ? FILE_SYSTEM[targetId] : null;
-    if (t && t.hackLength) return t.hackLength;
-    return 7;
-}
+/* Every round picks a random word length (5-8) */
+function hackDifficulty() { return 5 + hackRand(4); }
+
+function hackLockUntil() { try { return Number(localStorage.getItem(HACK_LOCK_KEY)) || 0; } catch (_) { return 0; } }
+function hackSetLock(t) { try { t ? localStorage.setItem(HACK_LOCK_KEY, String(t)) : localStorage.removeItem(HACK_LOCK_KEY); } catch (_) {} }
 
 /* Build the memory dump and the word / bracket maps */
 function hackGenerate(len) {
     const pool = hackShuffle(HACK_WORDS[len] || HACK_WORDS[7]);
-    const count = 12 + hackRand(3);
+    const count = 10 + hackRand(5);
     const password = pool[0];
     // make sure at least a few decoys share letters with the password so likeness is useful
     const rest = pool.slice(1).sort((a, b) => hackLikeness(b, password) - hackLikeness(a, password));
@@ -73,7 +75,7 @@ function hackGenerate(len) {
         chars[a] = o; chars[b] = HACK_PAIRS[o];
         planted++;
     }
-    return { len, password, chars, isWord, words: placed };
+    return { len, password, chars, isWord, words: placed, base: 0xF000 + hackRand(0x0F00) };
 }
 
 /* Find the closing bracket for an opening bracket at index i (same row, junk only) */
@@ -91,12 +93,14 @@ function hackBracketRange(g, i) {
 }
 
 /* ---------- Rendering ---------- */
-function hackAddr(n) { return '0x' + (0xF000 + n * 12).toString(16).toUpperCase().padStart(4, '0'); }
+function hackAddr(g, n) { return '0x' + (g.base + n * 12).toString(16).toUpperCase().padStart(4, '0'); }
 
 function hackInner(targetId) {
-    const name = FILE_SYSTEM[targetId] ? FILE_SYSTEM[targetId].name : 'TERMINAL';
+    const login = targetId === HACK_LOGIN;
+    const name = login ? 'VAULT 254 OVERSEER TERMINAL' : (FILE_SYSTEM[targetId] ? FILE_SYSTEM[targetId].name : 'TERMINAL');
     return `
         <div class="hack-head">
+            ${login ? '<div>ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL</div>' : ''}
             <div id="hack-status">ENTER PASSWORD NOW</div>
             <div class="mt-2"><span id="hack-attempts-line"></span></div>
             <div class="text-sm opacity-70 mb-2" id="hack-target">TARGET: ${name}</div>
@@ -107,6 +111,10 @@ function hackInner(targetId) {
                 <div class="hack-log" id="hack-log"></div>
                 <div class="hack-prompt">&gt; <span id="hack-hover"></span><span class="cursor-block"></span></div>
             </div>
+        </div>
+        <div class="text-sm opacity-60 mt-1 flex flex-wrap items-center justify-between gap-2">
+            <span>WARNING: ${HACK_MAX_TRIES} FAILED ATTEMPTS WILL LOCK THE TERMINAL FOR ${HACK_LOCK_SECONDS} SECONDS</span>
+            ${login ? '<button class="menu-button" onclick="hackOpenPassword()">[TAB] ENTER PASSWORD</button>' : ''}
         </div>`;
 }
 
@@ -118,13 +126,13 @@ window.initHack = function (targetId) {
     const rootEl = document.getElementById('hack-root');
     if (!rootEl) return;
     if (window.hackGame && window.hackGame.rootEl === rootEl) return; // already running on this DOM
-    const len = hackDifficulty(targetId);
-    startHackRound(targetId, len, rootEl);
+    if (hackLockUntil() > Date.now()) return hackLockout(targetId, rootEl); // lockout survives reloads
+    startHackRound(targetId, hackDifficulty(), rootEl);
 };
 
 window.stopHack = function () {
+    clearInterval(window.hackLockTimer);
     if (window.hackGame) {
-        clearInterval(window.hackGame.lockTimer);
         document.removeEventListener('keydown', window.hackGame.keyHandler, true);
         window.hackGame = null;
     }
@@ -139,7 +147,6 @@ function startHackRound(targetId, len, rootEl) {
         tries: HACK_MAX_TRIES,
         cursor: 0,
         over: false,
-        lockTimer: null,
         group: [],
     };
     window.hackGame = g;
@@ -164,7 +171,7 @@ function drawHack(g) {
                 const ch = g.chars[base + k].replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
                 spans += `<span data-i="${base + k}">${ch}</span>`;
             }
-            col += `<div class="hack-row" style="animation-delay:${(c * HACK_ROWS + r) * 22}ms"><span class="hack-addr">${hackAddr(c * HACK_ROWS + r)}</span><span class="hack-chars">${spans}</span></div>`;
+            col += `<div class="hack-row" style="animation-delay:${(c * HACK_ROWS + r) * 22}ms"><span class="hack-addr">${hackAddr(g, c * HACK_ROWS + r)}</span><span class="hack-chars">${spans}</span></div>`;
         }
         col += '</div>';
         rowsHtml.push(col);
@@ -268,50 +275,116 @@ function hackGuess(g, wd) {
     hackBeep('bad');
     hackUpdateAttempts(g);
     hackClearHover(g);
-    if (g.tries <= 0) return hackLockout(g);
+    if (g.tries <= 0) return hackLockout(g.targetId, g.rootEl, Date.now() + HACK_LOCK_SECONDS * 1000);
     hackHover(g, g.cursor);
 }
 
 function hackSuccess(g) {
     const id = g.targetId;
-    const { unlocked, path } = window.state.terminal;
+    hackSetLock(0);
     window.stopHack();
+    if (id === HACK_LOGIN) return hackLoginOK();
+    const { unlocked, path } = window.state.terminal;
     window.setState({ terminal: { hacking: null, unlockTarget: null, unlocked: unlocked.includes(id) ? unlocked : [...unlocked, id], path: [...path, id] } });
 }
+
+function hackLoginOK() {
+    hackSetLock(0);
+    window.stopHack();
+    window.setState({ loggedIn: true });
+    initBootProcess();
+}
+
+/* ---------- Password entry (alternative to hacking) ---------- */
+window.hackOpenPassword = function () {
+    const rootEl = document.getElementById('hack-root') || (window.hackGame && window.hackGame.rootEl);
+    if (!rootEl || document.getElementById('hack-pw-box')) return;
+    const box = document.createElement('div');
+    box.id = 'hack-pw-box';
+    box.className = 'hack-pw-box';
+    box.innerHTML = `
+        <div class="hack-pw-inner">
+            <div>ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL</div>
+            <div class="mb-3">USER: OVERSEER_V.CALDWELL</div>
+            <div class="flex items-center gap-3" style="display:flex;gap:.75rem;align-items:center">
+                <span style="white-space:nowrap">ENTER PASSWORD NOW &gt;</span>
+                <input id="hack-pw" type="password" class="login-input" autocomplete="off" spellcheck="false" onkeydown="hackPwKey(event)">
+            </div>
+            <div id="hack-pw-err" style="height:1.6rem;margin-top:.6rem"></div>
+            <div style="display:flex;gap:.75rem">
+                <button class="menu-button" onclick="hackSubmitPassword()">[ ENTER ]</button>
+                <button class="menu-button" onclick="hackClosePassword()">[ ESC ] CANCEL</button>
+            </div>
+        </div>`;
+    rootEl.appendChild(box);
+    document.getElementById('hack-pw').focus();
+};
+window.hackClosePassword = function () {
+    const b = document.getElementById('hack-pw-box');
+    if (b) b.remove();
+};
+window.hackPwKey = function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); hackSubmitPassword(); }
+    else if (e.key === 'Escape') { e.preventDefault(); hackClosePassword(); }
+    else { const er = document.getElementById('hack-pw-err'); if (er) er.textContent = ''; }
+};
+window.hackSubmitPassword = function () {
+    const input = document.getElementById('hack-pw');
+    if (!input) return;
+    if (input.value.trim().toLowerCase() === CONFIG.loginPassword) {
+        hackBeep('win');
+        hackLoginOK();
+    } else {
+        input.value = '';
+        input.focus();
+        document.getElementById('hack-pw-err').textContent = 'ERROR: ACCESS DENIED';
+        hackBeep('bad');
+    }
+};
 
 function hackAbort() {
     const g = window.hackGame;
     const id = g ? g.targetId : null;
+    if (id === HACK_LOGIN) return; // no way out of the login hack
     window.stopHack();
     window.setState({ terminal: { hacking: null, unlockTarget: id } });
 }
 window.hackAbort = hackAbort;
 
-function hackLockout(g) {
-    g.over = true;
+/* Real lockout: stored with a timestamp, so reloading the page does not reset it */
+function hackLockout(targetId, rootEl, until) {
+    if (until) hackSetLock(until); else until = hackLockUntil();
+    const g = window.hackGame && window.hackGame.rootEl === rootEl ? window.hackGame : null;
+    if (g) g.over = true;
+    else {
+        window.stopHack();
+        const stub = { targetId, rootEl, over: true, group: [], cells: [] };
+        stub.keyHandler = (e) => hackKey(e, stub);
+        document.addEventListener('keydown', stub.keyHandler, true);
+        window.hackGame = stub;
+    }
     hackBeep('lock');
-    let left = HACK_LOCK_SECONDS;
-    const draw = () => {
-        g.rootEl.innerHTML = `
+    const login = targetId === HACK_LOGIN;
+    const fmt = () => String(Math.max(0, Math.ceil((until - Date.now()) / 1000))).padStart(2, '0');
+    rootEl.innerHTML = `
         <div class="hack-lock">
             <div class="big">TERMINAL LOCKED</div>
             <div>PLEASE CONTACT AN ADMINISTRATOR</div>
-            <div id="hack-lock-timer" class="mt-2">SYSTEM REBOOT IN ${String(left).padStart(2, '0')}S</div>
-            <button class="menu-button mt-4" onclick="hackAbort()">&lt; [ESC] ABORT</button>
+            <div id="hack-lock-timer" class="mt-2">SYSTEM REBOOT IN ${fmt()}S</div>
+            ${login ? '<button class="menu-button mt-4" onclick="hackOpenPassword()">[TAB] ADMINISTRATOR PASSWORD</button>' : '<button class="menu-button mt-4" onclick="hackAbort()">&lt; [ESC] ABORT</button>'}
         </div>`;
-    };
-    draw();
-    g.lockTimer = setInterval(() => {
-        left--;
-        if (left <= 0) {
-            clearInterval(g.lockTimer);
-            g.rootEl.innerHTML = hackInner(g.targetId);
-            startHackRound(g.targetId, hackDifficulty(g.targetId), g.rootEl);
+    clearInterval(window.hackLockTimer);
+    window.hackLockTimer = setInterval(() => {
+        if (Date.now() >= until) {
+            clearInterval(window.hackLockTimer);
+            hackSetLock(0);
+            rootEl.innerHTML = hackInner(targetId);
+            startHackRound(targetId, hackDifficulty(), rootEl);
         } else {
             const t = document.getElementById('hack-lock-timer');
-            if (t) t.textContent = `SYSTEM REBOOT IN ${String(left).padStart(2, '0')}S`;
+            if (t) t.textContent = `SYSTEM REBOOT IN ${fmt()}S`;
         }
-    }, 1000);
+    }, 250);
 }
 
 /* ---------- Header / log helpers ---------- */
@@ -340,6 +413,9 @@ function logHack(g, text, silent) {
 /* ---------- Keyboard ---------- */
 function hackKey(e, g) {
     if (!window.hackGame || g !== window.hackGame) return;
+    if (e.target && e.target.id === 'hack-pw') return; // password box handles its own keys
+    if (document.getElementById('hack-pw-box')) return;
+    if (e.key === 'Tab' && g.targetId === HACK_LOGIN) { e.preventDefault(); e.stopPropagation(); hackOpenPassword(); return; }
     if (e.key === 'Escape') {
         e.preventDefault(); e.stopPropagation();
         hackAbort();

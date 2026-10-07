@@ -36,7 +36,7 @@ function renderApp() {
     window.lastActiveApp = activeApp;
 
     if (!loggedIn) {
-        screenContent.innerHTML = renderLoginScreen();
+        screenContent.innerHTML = '<div class="h-full w-full p-3 md:p-6" style="height:100%;padding:clamp(8px,2vh,24px)">' + renderHackApp(HACK_LOGIN) + '</div>';
         modalLayer.innerHTML = '';
     } else if (!booted) {
         screenContent.innerHTML = renderBootSequence();
@@ -54,11 +54,12 @@ function renderApp() {
     if (logEl) logEl.scrollTop = logEl.scrollHeight;
 
     // start the hacking mini-game once its markup is on screen
-    if (booted && activeApp === 'terminal' && terminal.hacking && window.initHack) window.initHack(terminal.hacking);
-    else if (window.stopHack && !terminal.hacking) window.stopHack();
+    if (!loggedIn) window.initHack(HACK_LOGIN);
+    else if (booted && activeApp === 'terminal' && terminal.hacking) window.initHack(terminal.hacking);
+    else if (window.stopHack) window.stopHack();
 
     let focusId = null;
-    if (!loggedIn) focusId = 'login-input';
+    if (!loggedIn) focusId = null;
     else if (booted && activeApp === 'terminal' && !terminal.hacking) focusId = terminal.unlockTarget ? 'term-input' : 'cmd-input';
     const el = focusId && document.getElementById(focusId);
     if (el && document.activeElement !== el) {

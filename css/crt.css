@@ -136,7 +136,7 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
 /* ============================================================
    HACKING MINI-GAME
    ============================================================ */
-.hack { height: 100%; display: flex; flex-direction: column; min-height: 0; font-size: clamp(.8rem, 2.45vh, 1.2rem); line-height: 1.1; }
+.hack { position: relative; height: 100%; display: flex; flex-direction: column; min-height: 0; font-size: clamp(.8rem, 2.45vh, 1.2rem); line-height: 1.1; }
 .hack-head { flex: none; }
 .hack-attempts .blk {
     display: inline-block; width: .7em; height: 1em; margin-left: .35em;
@@ -161,3 +161,7 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
 .hack-lock { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: .8rem; }
 .hack-lock .big { font-size: 2.2rem; letter-spacing: .15em; animation: blink 1s step-end infinite; }
 @media (max-width: 520px) { .hack { font-size: 1rem; } .hack-cols { gap: .6rem; } .hack-row { gap: .4rem; } }
+
+.hack-pw-box { position: absolute; inset: 0; z-index: 5; background: var(--screen-bg); display: flex; align-items: center; justify-content: center; padding: 1rem; font-size: 1.3rem; }
+.hack-pw-inner { width: 100%; max-width: 42rem; }
+#hack-pw-err { color: var(--color-primary); }
