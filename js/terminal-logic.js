@@ -20,7 +20,7 @@ window.handleTerminalCommand = (raw) => {
 
     switch (cmd.toLowerCase()) {
         case 'help':
-            response = ['COMMANDS: LS, CD [DIR], CD .., OPEN [FILE], CLEAR, DATE, STATUS, WHOAMI, UNLOCK, RECLAIM'];
+            response = ['COMMANDS: LS, CD [DIR], CD .., OPEN [FILE], CLEAR, DATE, STATUS, WHOAMI, UNLOCK, HACK [LOCKED DIR], RECLAIM'];
             break;
         case 'ls':
             response = [folder.children.map(id => FILE_SYSTEM[id].name).join('  ')];
@@ -60,8 +60,16 @@ window.handleTerminalCommand = (raw) => {
         case 'reclaim':
             response = ['INITIATING RECLAMATION DAY PROTOCOL...', 'ERROR: MASTER KEYCARD REQUIRED.', 'ERROR: SURFACE VIABILITY < 10%'];
             break;
+        case 'hack': {
+            const locked = folder.children.map(id => FILE_SYSTEM[id]).filter(i => i.locked && !terminal.unlocked.includes(i.id));
+            const target = arg ? findChild(folder, arg) : locked[0];
+            if (!target) response = [arg ? `ERROR: '${arg.toUpperCase()}' NOT FOUND.` : 'NO LOCKED TARGETS IN THIS DIRECTORY.'];
+            else if (!target.locked || terminal.unlocked.includes(target.id)) response = ['TARGET IS NOT SECURED.'];
+            else { patch.hacking = target.id; response = ['INITIATING OVERRIDE...']; }
+            break;
+        }
         case 'unlock':
-            response = ['USAGE: CD [LOCKED FOLDER] OR SELECT IT IN THE LIST TO ENTER A PASSWORD.'];
+            response = ['USAGE: CD [LOCKED FOLDER] FOR PASSWORD PROMPT, OR HACK [LOCKED FOLDER].'];
             break;
         case 'status':
             response = ['VAULT 254: SEALED', 'POPULATION: 1000', 'POWER: 98%', 'WATER: STABLE'];

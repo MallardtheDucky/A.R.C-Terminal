@@ -1,5 +1,6 @@
 function renderTerminalApp() {
-    const { path, viewingFile, unlocked, unlockTarget, unlockInput, cmdLog, cmdInput } = window.state.terminal;
+    const { path, viewingFile, unlocked, unlockTarget, unlockInput, cmdLog, cmdInput, hacking } = window.state.terminal;
+    if (hacking) return renderHackApp(hacking);
     const currentFolder = FILE_SYSTEM[path[path.length - 1]];
     if (unlockTarget) {
         return `
@@ -12,6 +13,7 @@ function renderTerminalApp() {
                     onkeydown="if(event.key === 'Enter') attemptUnlock()" 
                     class="bg-black border border-red-500 text-red-500 p-2 text-center focus:outline-none uppercase text-lg w-full mb-4" 
                     placeholder="PASSWORD" autofocus>
+                <button onclick="window.setState({ terminal: { hacking: '${unlockTarget}', unlockTarget: null, unlockInput: '' } })" class="w-full mb-2 border border-green-500 text-green-500 hover:bg-green-500 hover:text-black py-2 font-bold tracking-widest">&gt; OVERRIDE (HACK TERMINAL)</button>
                 <div class="flex gap-2">
                     <button onclick="window.setState({ terminal: { unlockTarget: null, unlockInput: '' } })" class="flex-1 border border-red-900 text-red-700 hover:text-red-500 py-2">CANCEL</button>
                     <button onclick="attemptUnlock()" class="flex-1 bg-red-900/30 border border-red-500 text-red-500 hover:bg-red-500 hover:text-black py-2 font-bold">ACCESS</button>

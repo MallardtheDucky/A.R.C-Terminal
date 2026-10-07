@@ -58,7 +58,7 @@ const FILE_SYSTEM = {
     water_chip: { id: 'water_chip', name: 'WATER_PURIFICATION.SYS', type: 'file', content: 'COMPONENT: Water Chip (Model 2077-B)\nSTATUS: FUNCTIONAL\n\nNOTE: This is our last chip. Do not touch it. Do not look at it wrong. If it breaks, we die.' },
     medical: { id: 'medical', name: 'MEDICAL', type: 'folder', children: ['patient_zero', 'supply_list'] },
     patient_zero: { id: 'patient_zero', name: 'GENETIC_DRIFT_STUDY.DOC', type: 'file', content: 'SUBJECT: The "Grey Drift"\n\nWe are seeing immune system depression in Generation 6 children. The genetic bottleneck is real. We need new DNA to prevent a cascade failure within 50 years.\n\nThis supports the Reclamationist argument, though I hate to admit it.\n- Dr. Morrison' },
-    restricted: { id: 'restricted', name: 'RESTRICTED AREA', type: 'folder', locked: true, children: ['executive_list', 'wakeup_protocol'] },
+    restricted: { id: 'restricted', name: 'RESTRICTED AREA', type: 'folder', locked: true, hackLength: 7, children: ['executive_list', 'wakeup_protocol'] },
     executive_list: { id: 'executive_list', name: 'BOARD_MEMBERS.ENC', type: 'file', content: '*** EYES ONLY ***\n\nCRYO-POD 001: Frederick Langston\nCRYO-POD 002: Leonard Vance (CEO)\nCRYO-POD 120: S. Calvin\n\nTOTAL: 120 Executives.\nSTATUS: Stable (mostly).' },
     wakeup_protocol: { id: 'wakeup_protocol', name: 'RECLAMATION_DAY.EXE', type: 'file', content: 'PROTOCOL 77-RECLAIM\n\n1. Unseal Blast Door.\n2. Deploy Security Perimeter.\n3. Initiate Thaw Cycle (12 Hours).\n\nWARNING: Authorization Code required. Only the Overseer can initiate.' }
 };

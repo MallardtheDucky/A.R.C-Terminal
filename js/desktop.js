@@ -15,7 +15,7 @@ const APPS = {
 function closeApp() {
     window.setState({
         activeApp: null,
-        terminal: { unlockTarget: null, unlockInput: '', viewingFile: null },
+        terminal: { unlockTarget: null, unlockInput: '', viewingFile: null, hacking: null },
         mail: { selectedEmailId: null },
         map: { selectedRoom: null },
         status: { selectedSensor: null }

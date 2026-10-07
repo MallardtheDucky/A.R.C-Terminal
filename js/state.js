@@ -9,6 +9,7 @@ window.state = {
         unlocked: [],
         unlockTarget: null,
         unlockInput: '',
+        hacking: null,
         cmdLog: ['Welcome to ROBCO Terminal v3.5', 'Type "help" for commands.'],
         cmdInput: ''
     },
