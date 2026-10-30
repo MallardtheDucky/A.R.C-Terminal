@@ -1,6 +1,3 @@
-/* ============================================================
-   CRT / cool-retro-term style display
-   ============================================================ */
 :root {
     --screen-bg: #02100a;
     --glow: 26, 255, 110;
@@ -32,7 +29,7 @@ html, body { background: #050806; height: 100%; }
         inset 0 0 90px 12px rgba(0, 0, 0, 0.85);
     isolation: isolate;
 }
-/* Content sits inside a margin so curved corners never eat text */
+
 .crt-inner {
     position: absolute;
     inset: clamp(8px, 1.8vmin, 26px) clamp(10px, 2.4vmin, 34px);
@@ -45,7 +42,7 @@ html, body { background: #050806; height: 100%; }
 #root .bg-black, #root .bg-\[\#050505\] { background-color: var(--screen-bg) !important; }
 #root .modal-solid-bg { background-color: var(--screen-bg); }
 
-/* ---- Phosphor glow / bloom ---- */
+
 body, .crt-inner {
     text-shadow:
         0 0 1px rgba(var(--glow), 0.9),
@@ -55,7 +52,7 @@ body, .crt-inner {
 .crt-inner { filter: contrast(1.08) brightness(1.08) saturate(1.1); }
 img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
 
-/* ---- Overlays ---- */
+
 .crt-fx { position: absolute; inset: 0; pointer-events: none; }
 .crt-scan {
     z-index: 60;
@@ -65,7 +62,7 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
             rgba(0,0,0,0.30) 2px, rgba(0,0,0,0.30) 3px);
     mix-blend-mode: multiply;
 }
-.crt-mask {   /* faint RGB phosphor triads */
+.crt-mask {  
     z-index: 61; opacity: .5;
     background-image: linear-gradient(90deg,
         rgba(255,0,0,.05), rgba(0,255,0,.03), rgba(0,0,255,.05));
@@ -81,7 +78,7 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
     background:
         radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 45%, rgba(0,0,0,.35) 80%, rgba(0,0,0,.8) 100%);
 }
-.crt-glass {   /* curved-glass reflection */
+.crt-glass {   
     z-index: 64;
     background:
         radial-gradient(ellipse 80% 45% at 30% 0%, rgba(190,255,215,.10), rgba(190,255,215,0) 70%),
@@ -100,7 +97,7 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
     40% { background-position: 30px -60px; } 60% { background-position: -70px -20px; }
     80% { background-position: 50px 70px; } 100% { background-position: 0 0; }
 }
-/* power-on: a bright line expands into the picture */
+
 .crt-booting .crt-inner { animation: crt-on 1.1s cubic-bezier(.2,.8,.2,1) both, crt-flicker .11s infinite alternate; }
 .crt-booting .crt-flash { animation: crt-flash 1.1s ease-out both; }
 @keyframes crt-on {
@@ -109,7 +106,7 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
     100% { transform: scale(1, 1); filter: contrast(1.08) brightness(1.08); }
 }
 @keyframes crt-flash { 0% { opacity: .35; } 100% { opacity: 0; } }
-/* brief horizontal glitch used when switching apps */
+
 .crt-glitch .crt-inner { animation: crt-glitch .28s steps(4) 1, crt-flicker .11s infinite alternate; }
 @keyframes crt-glitch {
     0% { transform: translateX(-4px) skewX(1deg); filter: brightness(1.8) blur(.6px); }
@@ -117,7 +114,7 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
     100% { transform: none; }
 }
 
-/* F2 toggles effects off */
+
 .no-crt .crt-fx { display: none; }
 .no-crt .crt-inner { animation: none; filter: none; }
 .no-crt .crt-screen { border-radius: 0 !important; box-shadow: none; }
@@ -126,16 +123,14 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
     .crt-noise, .crt-roll, .crt-inner { animation: none !important; }
 }
 
-/* ---- Menu feels more like the game ---- */
+
 .menu-item { letter-spacing: .08em; }
 .menu-item.selected, .menu-item:hover, .menu-item:focus {
     box-shadow: 0 0 14px rgba(var(--glow), .55) !important;
 }
 .menu-button:hover { box-shadow: 0 0 12px rgba(var(--glow), .5); }
 
-/* ============================================================
-   HACKING MINI-GAME
-   ============================================================ */
+
 .hack { position: relative; height: 100%; display: flex; flex-direction: column; min-height: 0; font-size: clamp(.8rem, 2.45vh, 1.2rem); line-height: 1.1; }
 .hack-head { flex: none; }
 .hack-attempts .blk {
@@ -166,16 +161,10 @@ img { filter: drop-shadow(0 0 6px rgba(var(--glow), 0.65)) contrast(1.1); }
 .hack-pw-inner { width: 100%; max-width: 42rem; }
 #hack-pw-err { color: var(--color-primary); }
 
-/* ============================================================
-   FALLOUT TERMINAL FONT (Monofonto, from the PipBoy-3000-Interface repo)
-   ============================================================ */
 @font-face { font-family: 'Monofonto'; src: url('../assets/fonts/monofonto.ttf') format('truetype'); font-display: swap; }
 body, #root .font-mono, #root button, #root input, #root pre { font-family: 'Monofonto', 'VT323', 'Courier New', monospace !important; }
 body { letter-spacing: .02em; }
 
-/* ============================================================
-   MAP: cross-section + surface scan
-   ============================================================ */
 .map-room { cursor: pointer; }
 .map-room rect { transition: fill .15s, filter .15s; }
 .map-room:hover rect { fill: rgba(26,255,110,.22); filter: drop-shadow(0 0 6px rgba(26,255,110,.8)); }
@@ -200,9 +189,6 @@ body { letter-spacing: .02em; }
 .map-pin:hover .map-pin-label, .map-pin.active .map-pin-label { opacity: 1; }
 @media (max-width: 640px) { .map-pin-label { display: none; } .map-pin.active .map-pin-label { display: block; position: absolute; top: 14px; left: 0; } }
 
-/* ============================================================
-   MAIN MENU side panel / extra detail
-   ============================================================ */
 .vb-panel { border: 1px solid rgba(26,255,110,.5); background: rgba(0,40,20,.35); padding: .75rem; width: 15rem; flex: none; display: none; flex-direction: column; align-items: center; gap: .5rem; box-shadow: inset 0 0 20px rgba(26,255,110,.12); }
 @media (min-width: 900px) and (min-height: 560px) { .vb-panel { display: flex; } }
 .vb-panel img.vb { height: 11rem; width: auto; filter: drop-shadow(0 0 8px rgba(26,255,110,.7)); animation: pulse-slow 4s ease-in-out infinite; }
