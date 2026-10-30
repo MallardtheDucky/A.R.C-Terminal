@@ -26,12 +26,10 @@ function hackDifficulty() { return 5 + hackRand(4); }
 function hackLockUntil() { try { return Number(localStorage.getItem(HACK_LOCK_KEY)) || 0; } catch (_) { return 0; } }
 function hackSetLock(t) { try { t ? localStorage.setItem(HACK_LOCK_KEY, String(t)) : localStorage.removeItem(HACK_LOCK_KEY); } catch (_) {} }
 
-/* Build the memory dump and the word / bracket maps */
 function hackGenerate(len) {
     const pool = hackShuffle(HACK_WORDS[len] || HACK_WORDS[7]);
     const count = 10 + hackRand(5);
     const password = pool[0];
-    // make sure at least a few decoys share letters with the password so likeness is useful
     const rest = pool.slice(1).sort((a, b) => hackLikeness(b, password) - hackLikeness(a, password));
     const near = rest.slice(0, 3);
     const far = hackShuffle(rest.slice(3)).slice(0, count - 4);
@@ -78,7 +76,7 @@ function hackBracketRange(g, i) {
     const row = Math.floor(i / HACK_W), rowEnd = row * HACK_W + HACK_W - 1;
     const close = HACK_PAIRS[o];
     for (let j = i + 1; j <= rowEnd; j++) {
-        if (g.isWord[j] !== -1 && !g.words[g.isWord[j]].removed) return null; // a word blocks the pair
+        if (g.isWord[j] !== -1 && !g.words[g.isWord[j]].removed) return null; 
         if (g.gone[j]) return null;
         if (g.chars[j] === close) return [i, j];
     }
@@ -336,7 +334,7 @@ window.hackSubmitPassword = function () {
 function hackAbort() {
     const g = window.hackGame;
     const id = g ? g.targetId : null;
-    if (id === HACK_LOGIN) return; // no way out of the login hack
+    if (id === HACK_LOGIN) return; 
     window.stopHack();
     window.setState({ terminal: { hacking: null, unlockTarget: id } });
 }
@@ -401,7 +399,7 @@ function logHack(g, text, silent) {
 
 function hackKey(e, g) {
     if (!window.hackGame || g !== window.hackGame) return;
-    if (e.target && e.target.id === 'hack-pw') return; // password box handles its own keys
+    if (e.target && e.target.id === 'hack-pw') return; 
     if (document.getElementById('hack-pw-box')) return;
     if (e.key === 'Tab' && g.targetId === HACK_LOGIN) { e.preventDefault(); e.stopPropagation(); hackOpenPassword(); return; }
     if (e.key === 'Escape') {
