@@ -1,11 +1,4 @@
-/* ============================================================
-   ROBCO TERMLINK HACKING MINI-GAME  (Fallout-style)
-   - 2 columns x 17 rows x 12 chars of memory dump
-   - Pick the password from the candidate words; "likeness" tells
-     how many letters are correct AND in the right position
-   - Bracket pairs ( ) [ ] { } < > on one line are cheats:
-     remove a dud word or replenish your attempts
-   ============================================================ */
+
 const HACK_WORDS = {
     5: ['TREES','WAKES','WRITE','TAKEN','GHOST','SHINY','SKIES','RAISE','WAVES','VAULT','POWER','WATER','STEEL','FLAME','NIGHT','STORM','BLAST','CHAOS','GUARD','TOWER','FORCE','ALARM','LASER','SHELL','CRATE','DRIFT','RADIO','TRACE','CLEAN','LEARN'],
     6: ['RAISED','WINTER','SECURE','BUNKER','ENERGY','SILENT','TOXINS','SIGNAL','ORACLE','MARKET','HUNTER','DEPLOY','SEALED','FUSION','CAUSES','CIRCLE','LIVING','GARDEN','HEALTH','FAMILY','OUTPUT','ORDERS','SHIELD','CRYPTO','DOCTOR','MASTER','DANGER','PLANET','SYSTEM','UNREST'],
@@ -49,7 +42,7 @@ function hackGenerate(len) {
     const placed = [];
     const rowOf = (i) => Math.floor(i / HACK_W);
 
-    // distribute words across the rows: a row can only host one word, with room around it
+
     const rows = hackShuffle([...Array(HACK_ROWS * HACK_COLS).keys()]);
     let ri = 0;
     for (const w of words) {
@@ -60,7 +53,7 @@ function hackGenerate(len) {
         placed.push({ word: w, start, end: start + w.length - 1, removed: false });
     }
 
-    // plant a handful of guaranteed bracket pairs in junk gaps
+
     const keys = Object.keys(HACK_PAIRS);
     let planted = 0, tries = 0;
     while (planted < 9 && tries++ < 400) {
@@ -78,7 +71,7 @@ function hackGenerate(len) {
     return { len, password, chars, isWord, words: placed, base: 0xF000 + hackRand(0x0F00) };
 }
 
-/* Find the closing bracket for an opening bracket at index i (same row, junk only) */
+
 function hackBracketRange(g, i) {
     const o = g.chars[i];
     if (!HACK_PAIRS[o] || g.isWord[i] !== -1 || g.gone[i]) return null;
@@ -92,7 +85,7 @@ function hackBracketRange(g, i) {
     return null;
 }
 
-/* ---------- Rendering ---------- */
+
 function hackAddr(g, n) { return '0x' + (g.base + n * 12).toString(16).toUpperCase().padStart(4, '0'); }
 
 function hackInner(targetId) {
@@ -125,8 +118,8 @@ function renderHackApp(targetId) {
 window.initHack = function (targetId) {
     const rootEl = document.getElementById('hack-root');
     if (!rootEl) return;
-    if (window.hackGame && window.hackGame.rootEl === rootEl) return; // already running on this DOM
-    if (hackLockUntil() > Date.now()) return hackLockout(targetId, rootEl); // lockout survives reloads
+    if (window.hackGame && window.hackGame.rootEl === rootEl) return; 
+    if (hackLockUntil() > Date.now()) return hackLockout(targetId, rootEl); 
     startHackRound(targetId, hackDifficulty(), rootEl);
 };
 
@@ -189,7 +182,7 @@ function hackIdx(e) {
     return t ? Number(t.dataset.i) : null;
 }
 
-/* ---------- Hover / selection ---------- */
+
 function hackGroupAt(g, i) {
     const w = g.isWord[i];
     if (w !== -1 && !g.words[w].removed) {
@@ -235,7 +228,6 @@ function hackUseBracket(g, grp) {
     hackBlank(g, grp.from, grp.to);
     hackClearHover(g);
     logHack(g, grp.text.replace(/\./g, '.'));
-    // ~1 in 4 replenishes attempts, otherwise removes a dud
     const duds = g.words.filter(w => !w.removed && w.word !== g.password);
     if (Math.random() < 0.25 || duds.length === 0) {
         g.tries = HACK_MAX_TRIES;
@@ -295,7 +287,6 @@ function hackLoginOK() {
     initBootProcess();
 }
 
-/* ---------- Password entry (alternative to hacking) ---------- */
 window.hackOpenPassword = function () {
     const rootEl = document.getElementById('hack-root') || (window.hackGame && window.hackGame.rootEl);
     if (!rootEl || document.getElementById('hack-pw-box')) return;
@@ -351,7 +342,6 @@ function hackAbort() {
 }
 window.hackAbort = hackAbort;
 
-/* Real lockout: stored with a timestamp, so reloading the page does not reset it */
 function hackLockout(targetId, rootEl, until) {
     if (until) hackSetLock(until); else until = hackLockUntil();
     const g = window.hackGame && window.hackGame.rootEl === rootEl ? window.hackGame : null;
@@ -387,7 +377,6 @@ function hackLockout(targetId, rootEl, until) {
     }, 250);
 }
 
-/* ---------- Header / log helpers ---------- */
 function hackUpdateAttempts(g) {
     const el = document.getElementById('hack-attempts-line');
     if (!el) return;
@@ -410,7 +399,6 @@ function logHack(g, text, silent) {
     while (el.children.length > 14) el.removeChild(el.firstChild);
 }
 
-/* ---------- Keyboard ---------- */
 function hackKey(e, g) {
     if (!window.hackGame || g !== window.hackGame) return;
     if (e.target && e.target.id === 'hack-pw') return; // password box handles its own keys
@@ -437,7 +425,6 @@ function hackKey(e, g) {
     if (moved) { e.preventDefault(); e.stopPropagation(); hackHover(g, fromRC(r, c)); }
 }
 
-/* ---------- Tiny synth for terminal beeps ---------- */
 let hackAudio = null;
 function hackBeep(kind) {
     if (window.hackMuted) return;
