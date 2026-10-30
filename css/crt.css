@@ -4,7 +4,6 @@
 }
 html, body { background: #050806; height: 100%; }
 
-/* ---- Monitor housing ---- */
 #root {
     background:
         radial-gradient(ellipse at 50% 40%, #1c2a22 0%, #0d1511 55%, #050806 100%);

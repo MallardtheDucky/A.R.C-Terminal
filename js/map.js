@@ -1,21 +1,12 @@
-/* ============================================================
-   FACILITY SCHEMATICS  -  VAULT 254
-   Tab 1: cross-section of the vault (clickable rooms)
-   Tab 2: surface scan (wasteland map with contacts)
-   Artwork: Vault Boy / S.P.E.C.I.A.L. icons and map from the MIT-licensed
-   MegaZegan/PipBoy-3000-Interface repo on GitHub (tinted phosphor green).
-   ============================================================ */
 const IMG = (n) => `assets/img/${n}`;
 
 const ROOMS = [
-    // LEVEL 1
     { id: 'door', lvl: 1, name: 'VAULT DOOR', status: 'SEALED', head: 'Overseer Eyes Only', faction: 'Loyalists', icon: 'radiation.png', personnel: '0 (AUTO)', rad: 14.2,
       desc: 'The Great Seal (Model 77-A). Main hydraulic mechanisms verified intact.\n\nExternal sensors indicate lethal radiation levels in the immediate vestibule area (Zone 0).\n\nDefense Protocols: Automated turrets active. Camouflage netting requires replacement.', alert: 'DOOR SEALED FOR 198 YEARS', x: 40, w: 150 },
     { id: 'armory', lvl: 1, name: 'SECURITY ARMORY', status: 'OK', head: 'Chief Roland Drake', faction: 'The Guards', icon: 'pistol.png', personnel: '12', rad: 0.1,
       desc: 'Inventory Audit:\n- 20 T-45d Power Armor Suits (10 Operational, 10 for parts)\n- 200 R91 Assault Rifles\n- 150 10mm Pistols\n- 100 Security Batons\n\nCRITICAL: No energy weapon capability. Ballistic ammo conservation is mandatory.', alert: null, x: 196, w: 170 },
     { id: 'overseer', lvl: 1, name: 'OVERSEER OFFICE', status: 'RESTRICTED', head: 'Vincent Caldwell', faction: 'Loyalists', icon: 'perception.png', personnel: '3', rad: 0.1,
       desc: 'Executive command center. Direct uplink to central mainframe. Access to Reclamation Day protocols. Contains "The Black Book" (Vault-Tec Executive Summary).', alert: 'BIOMETRIC LOCK ENGAGED', x: 372, w: 180 },
-    // LEVEL 2
     { id: 'atrium', lvl: 2, name: 'ATRIUM', status: 'OK', head: 'Public Area', faction: 'Neutral', icon: 'charisma.png', personnel: '142', rad: 0.1,
       desc: 'Central gathering hub (Capacity: 500). LED sky-ceiling currently simulating "Overcast Afternoon" to reduce power consumption. Community notice board full of "Educator" flyers.', alert: null, x: 40, w: 104 },
     { id: 'education', lvl: 2, name: 'EDUCATION', status: 'BUSY', head: 'Daniel Cross', faction: 'Educators', icon: 'intelligence.png', personnel: '45', rad: 0.1,
@@ -26,7 +17,6 @@ const ROOMS = [
       desc: 'Staff housing block. Capacity 100%. Air filtration requires filter change in Block C.', alert: null, x: 370, w: 90 },
     { id: 'clinic', lvl: 2, name: 'CLINIC', status: 'BUSY', head: 'Dr. James Morrison', faction: 'Loyalists', icon: 'strength.png', personnel: '18', rad: 0.1,
       desc: 'Patient Load High. Tracking "Grey Drift" genetic anomalies in Generation 6 children.\n\nStimpak supply synthesis is stable. RadAway stocks: High.\nEquipment: 4 Auto-Docs (3 Operational).', alert: 'GENETIC DRIFT WARNING', x: 466, w: 86 },
-    // LEVEL 3
     { id: 'reactor', lvl: 3, name: 'REACTOR', status: 'WARNING', head: 'Natasha Volkova', faction: 'Innovators', icon: 'bolt.png', personnel: '15', rad: 1.8,
       desc: 'General Atomics V-Series Nuclear Generator. Output 98.4%. Est. Fuel Lifespan: 800 Years.\n\nISSUE: Secondary Coolant Pump vibration ("The Heartbeat") is worsening. Volkova has requested permission to scavenge parts from Level 4.', alert: 'VIBRATION DETECTED', x: 40, w: 126 },
     { id: 'hydro', lvl: 3, name: 'HYDROPONICS', status: 'OK', head: 'Lawrence Ashford', faction: 'Preservationists', icon: 'luck.png', personnel: '60', rad: 0.1,
@@ -35,7 +25,6 @@ const ROOMS = [
       desc: 'Water Chip Model 2077-B functioning within parameters. Source: Mountain spring aquifer.\n\nWARNING: This is the LAST functional chip. No backups available. Failure results in total colony dehydration in 4 days.', alert: 'SINGLE POINT OF FAILURE', x: 304, w: 126 },
     { id: 'workshop', lvl: 3, name: 'WORKSHOP', status: 'OK', head: 'Eng. Team', faction: 'Innovators', icon: 'vault-boy.png', personnel: '22', rad: 0.2,
       desc: 'Fabricating 10mm rounds and basic tools.\n\nT-45d repair bay active. Robot repair station offline due to lack of fusion pulse regulators. Cannot manufacture new robots.', alert: null, x: 436, w: 116 },
-    // LEVEL 4
     { id: 'cryo', lvl: 4, name: 'CRYO CONTROL', status: 'OK', head: 'Dr. Morrison', faction: 'Loyalists', icon: 'crosshair.png', personnel: '5', rad: 0.1,
       desc: 'Monitoring station for 120 Executive Pods. Liquid Nitrogen levels holding. Backup generators primed.', alert: null, x: 40, w: 170 },
     { id: 'pods', lvl: 4, name: 'PODS 001-119', status: 'STABLE', head: 'Vault-Tec Execs', faction: 'Frozen', icon: 'vault-boy-walk.png', personnel: '119', rad: 0.1,
@@ -139,7 +128,6 @@ function renderRoomOverlay(room) {
 }
 
 function renderVaultSection() {
-    // ---- SVG cross-section ----
     const roomsSvg = ROOMS.map(r => {
         const lvl = LEVELS[r.lvl - 1];
         const st = roomStatusClass(r.status);
@@ -174,7 +162,6 @@ function renderVaultSection() {
         <text x="40" y="500" font-size="11" fill="#0c8c3b">CLICK ANY SECTION FOR DETAILS</text>
     </svg>`;
 
-    // ---- Card grid by level ----
     const cards = LEVELS.map(l => {
         const rooms = ROOMS.filter(r => r.lvl === l.n);
         const red = l.n === 4;

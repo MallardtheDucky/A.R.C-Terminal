@@ -31,7 +31,6 @@ function renderApp() {
     const modalLayer = document.getElementById('modal-layer');
     const { loggedIn, booted, activeApp, terminal } = window.state;
 
-    // brief glitch whenever the active app changes
     if (window.lastActiveApp !== activeApp && window.lastActiveApp !== undefined) crtGlitch();
     window.lastActiveApp = activeApp;
 
@@ -53,7 +52,6 @@ function renderApp() {
     const logEl = document.getElementById('terminal-log');
     if (logEl) logEl.scrollTop = logEl.scrollHeight;
 
-    // start the hacking mini-game once its markup is on screen
     if (!loggedIn) window.initHack(HACK_LOGIN);
     else if (booted && activeApp === 'terminal' && terminal.hacking) window.initHack(terminal.hacking);
     else if (window.stopHack) window.stopHack();
@@ -78,7 +76,6 @@ function crtGlitch() {
     setTimeout(() => f.classList.remove('crt-glitch'), 320);
 }
 
-// F2 toggles the CRT effects (useful on slow machines)
 document.addEventListener('keydown', (e) => {
     if (e.key === 'F2') {
         e.preventDefault();

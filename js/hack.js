@@ -17,10 +17,8 @@ window.hackGame = null;
 function hackRand(n) { return Math.floor(Math.random() * n); }
 function hackShuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = hackRand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-/* Likeness = number of letters matching in the same position */
 function hackLikeness(a, b) { let n = 0; for (let i = 0; i < a.length; i++) if (a[i] === b[i]) n++; return n; }
 
-/* Every round picks a random word length (5-8) */
 function hackDifficulty() { return 5 + hackRand(4); }
 
 function hackLockUntil() { try { return Number(localStorage.getItem(HACK_LOCK_KEY)) || 0; } catch (_) { return 0; } }
@@ -436,6 +434,6 @@ function hackBeep(kind) {
         v.gain.setValueAtTime(spec[2], t); v.gain.exponentialRampToValueAtTime(0.0001, t + spec[1]);
         o.connect(v); v.connect(ctx.destination);
         o.start(t); o.stop(t + spec[1]);
-    } catch (_) { /* audio unavailable */ }
+    } catch (_) { }
 }
 window.hackToggleMute = () => { window.hackMuted = !window.hackMuted; };
